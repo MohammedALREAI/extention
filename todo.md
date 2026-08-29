@@ -1,0 +1,151 @@
+# Project TODO
+
+- [x] Define typed policy, rule, and check-history data models for bilingual filtering.
+- [x] Add database tables and migration for persisted user policies and recent checks.
+- [x] Implement typed tRPC procedures for parsing preferences, saving policies, listing policies, and evaluating test inputs.
+- [x] Implement a deterministic, instant rule-based evaluator with cache-aware repeated checks.
+- [x] Return explicit uncertain status for image URL checks rather than a false allow decision.
+- [x] Build a responsive Arabic/English preference setup flow with editable rules, actions, and text/image scopes.
+- [x] Build a test workspace for text and image URLs with decision, confidence, reason, cache status, and safety guidance.
+- [x] Build a signed-in policy and check-history experience that persists across sessions.
+- [x] Add Arabic/English copy and right-to-left support throughout the preference flow.
+- [x] Add Vitest coverage for preference parsing, rule evaluation, persistence helpers, and router procedures.
+- [x] Verify desktop and mobile layouts, type-checking, and automated tests.
+- [x] Define a versioned extension policy snapshot shared between the web app and Chrome extension.
+- [x] Build a Manifest V3 Chrome extension with an options page and background service worker.
+- [x] Support Google, Bing, DuckDuckGo, Brave Search, Yahoo, and Ecosia result cards through a modular selector registry.
+- [x] Extract multilingual titles, snippets, and destination URLs without translating or normalizing away the user’s language.
+- [x] Apply blur, block, and warn decisions to matched search-result cards with a reversible “show result” control.
+- [x] Add extension unit tests for engine detection, multilingual extraction, and result-card decisions.
+- [x] Package and document installation of the Chrome extension.
+- [x] Add a versioned policy-export format in the web app that can be copied into the extension without changing language-specific terms.
+- [x] Add tests for result-text extraction and reversible blur, block, and warn result-card protection.
+- [x] Produce a reproducible ZIP package for the extension and validate its manifest contents.
+- [x] Add a mock-DOM test for applying and manually revealing a protected search-result card.
+- [x] Verify the distributable extension archive has every manifest-referenced file at its root and correct its installation instructions.
+- [x] Superseded the fixed-alias approach with an LLM semantic evaluator for arbitrary user and result languages.
+- [x] Add Google-result fixture tests that verify an Arabic dog preference is routed for semantic protection of English dog results.
+- [x] Rebuild and validate the corrected extension package with explicit reload instructions.
+- [x] Replace fixed cross-language aliases with an LLM-backed semantic result evaluator for arbitrary user and result languages.
+- [x] Add a protected backend API that returns structured allow, blur, block, or warn decisions with confidence and rationale.
+- [x] Route unmatched extension results through the semantic evaluator with deduplication and a short-lived cache.
+- [x] Test Arabic, English, Spanish, and Russian preference/result combinations without relying on a fixed translation dictionary.
+- [x] Apply an explicit uncertain guard when semantic evaluation is unavailable, expired, or fails instead of silently allowing the result.
+- [x] Add a mock Google-card integration test that verifies an asynchronous semantic blur decision is applied to the card.
+- [x] Verify English-preference and Russian-preference semantic scenarios alongside the existing Arabic and Spanish cases.
+- [x] Add a full mock Google-card flow test from selector discovery through asynchronous semantic blur application.
+- [x] Replace whole-result guards with targeted inline masking of the exact matched word or phrase in text.
+- [x] Preserve search-result layout, links, and non-matching text while rendering a reversible mask over matching text only.
+- [x] Add vision-based object localization for image results and blur only the matched object region rather than the full image.
+- [x] Handle mixed images such as dogs and cats by applying overlays only to detected object boxes that match the policy.
+- [x] Add tests for inline text masking, mixed-object image overlays, and fallback behavior when visual localization is unavailable.
+- [x] Apply detected object boxes to a mock image container and verify only the matched-object overlay is rendered.
+- [x] Verify expired-token and failure behavior in the visual localizer without adding image overlays.
+- [x] Verify inline masking on a mock result-card text node replaces only the matched word with a reversible mask.
+- [x] Verify clicking an inline text mask restores the original matched word in the mock result node.
+- [x] Diagnose why Google cat results remain visible and why the extension reports semantic review unavailable.
+- [x] Ensure object overlays use an opaque visual blur or cover so detected cats are not visible through their boxes.
+- [x] Treat visual-evaluation failure as a visible protective cover for image content rather than leaving the image exposed.
+- [x] Add cat-only and cat-with-dog Google-result tests that prove cat regions are covered while non-matching dog regions remain visible.
+- [x] Apply cat-policy detection boxes to a mock Google image result and verify only cat-region masks are rendered while dog regions remain uncovered.
+- [x] Count protected text masks, protected image regions, and review covers once per search page.
+- [x] Send the page count from the content script to the Manifest V3 service worker and render it as a Chrome action badge.
+- [x] Reset and update the badge correctly as results load, policies change, or the user manually reveals protected content.
+- [x] Add unit tests for badge count calculation and message handling, then rebuild the extension ZIP.
+- [x] Clear existing protections and reset the icon badge when a policy is disabled or replaced with an allowing policy.
+- [x] Add tests for the actual Manifest V3 badge message and tab-loading reset handlers.
+- [x] Create a distinctive Content Firewall icon in the required Chrome extension sizes and declare it in the Manifest.
+- [x] Finalize Manifest name, concise user-facing description, version, action title, and production permission scope.
+- [x] Run a production-readiness audit covering tests, type checks, Manifest, packaged-file contents, security headers, CORS, permissions, and failure behavior.
+- [x] Package the production candidate ZIP and document any remaining manual Chrome Web Store submission requirements.
+- [x] Publish a public privacy notice route that accurately describes extension data use and access-token behavior.
+- [x] Audit and enforce production security headers for the web app and extension API, then verify them automatically.
+- [x] Verify the required production security headers on an actual extension API endpoint as part of the release checks.
+- [x] Ensure the repository extension folder itself contains all Manifest-referenced icons for Chrome Load unpacked.
+- [x] Generate and deliver a separately named unpacked extension folder that can be selected directly in chrome://extensions.
+- [x] Verify both the source folder and the distributable ZIP load without missing-icon errors in Chromium.
+- [x] Produce and verify a persistent unpacked Chrome-extension output folder alongside the downloadable ZIP.
+- [x] Create a bilingual Tutorial Start page covering ZIP download, unpacked installation, policy import, badge verification, and common error recovery.
+- [x] Link Tutorial Start prominently from the application and provide direct navigation to the extension download and privacy notice.
+- [x] Add automated content coverage and responsive visual verification for the tutorial flow.
+- [x] Fix Tutorial Start mobile layout so the progress rail and step cards collapse into a readable one-column flow.
+- [x] Create an animated GIF that demonstrates opening chrome://extensions, enabling Developer mode, and selecting Load unpacked.
+- [x] Embed the animated installation demo in Tutorial Start with accessible explanatory text and mobile-safe sizing.
+- [x] Verify GIF delivery, reduced-motion behavior, and tutorial layout on desktop and mobile.
+- [x] Verify that prefers-reduced-motion renders the non-animated installation-demo fallback instead of the GIF.
+- [x] Define extensible server-side subscription, trial, plan, and payment lifecycle data models with a one-time ten-day trial.
+- [ ] Configure a production payment integration for $10 monthly and $50 yearly plans, including webhook-driven subscription state changes.
+- [x] Persist trial activation, subscription type, status, periods, cancellation, and renewal information in the database.
+- [x] Enforce server-side paid-feature access after trial or subscription access ends while retaining account visibility.
+- [x] Build an Account & Subscription page with immediate plan, status, remaining access, trial, billing, upgrade, and management details.
+- [ ] Provide monthly/yearly plan selection, payment checkout, and customer subscription-management access.
+- [x] Add automated tests for trial calculation, plan state, access restriction, and subscription UI status display.
+- [x] Implement the subscription foundation and account experience without Stripe credentials; keep payment actions explicitly pending rather than simulating payment success.
+- [x] Document the exact Stripe Checkout, webhook, and customer-portal integration points to activate after keys are provided.
+- [x] Improve Account & Subscription mobile detail cards so trial and billing dates do not wrap into narrow three-column tiles.
+- [x] Explicitly gate or document the free-tier exemption for every remaining firewall procedure, including preference parsing and evaluation.
+- [x] Add rendered Account page coverage proving trial, paid, expired, and cancelled subscription data appears visibly in the UI.
+- [x] Add a protected-endpoint test matrix for expired accounts, including policy, history, extension access, and intended free routes.
+- [x] Diagnose why image result cards fall back to full Review covers and distinguish unavailable analysis from a confident no-match result.
+- [x] Tighten object-localization validation and render a strong blur only over confident matched-object regions instead of covering whole cards.
+- [x] Preserve safe review behavior only for genuine visual-analysis failure, with clear retry/import guidance rather than misclassifying no-match images.
+- [x] Add user feedback capture for incorrect/missed object detections to create consent-aware labelled examples for future model fine-tuning.
+- [x] Add regression tests for matched-only blur, cat/dog mixed images, no-match images, low-confidence boxes, and visual-analysis failure.
+- [x] Restore a protective visual-failure fallback only for unavailable or expired analysis while preserving visible no-match images and localized matched-object blur.
+- [x] Verify and enforce the exact Match → targeted blur, No match → no overlay, Failure → Review plus retry/re-import matrix in extension image flow.
+- [x] Add integration-level regression coverage proving no-match produces neither object mask nor Review, while unavailable analysis produces Review with retry guidance.
+- [x] Add an end-to-end DOM integration test using real image masking to prove match creates only object blur, no-match creates no overlay, and failure creates Review with retry guidance.
+- [x] Release a new Chrome extension package version containing the explicit image-result matrix and update the web download link.
+- [x] Diagnose and remove card-level Semantic Review behavior that prevents targeted image object masking on search-result cards.
+- [x] Route text matching to exact inline phrase masking and image matching to independent object localization without letting a text decision cover an image result.
+- [x] Add regression coverage for a mixed cat/dog result card proving text, target-object blur, no-match, and genuine visual failure remain isolated.
+- [x] Package a new extension release with the separated text/image protection pipeline and updated install link.
+- [x] Add a combined mixed-card integration test proving inline text masking, target-only object blur, no-match visibility, and failure-only image Review remain isolated on one result card.
+- [x] Extract and test the actual mixed result-card pipeline so text and image decisions run together against one real card DOM without any card-level guard.
+- [x] Package and publish a final extension build that includes the real mixed-card pipeline module and update the download link.
+- [x] Diagnose Google Images thumbnail/original URL handling and visual-batch behavior that causes missed cats or inaccurate object boxes.
+- [x] Strengthen target-object localization prompts and post-processing with per-image target validation, box de-duplication, and confidence-aware acceptance.
+- [x] Add regression fixtures for multiple cats, mixed cat/dog, partial object, and non-target animal cases to measure missed detections and false positives.
+- [x] Extend opt-in feedback export with detection outcome and image dimensions so reviewed examples can become usable fine-tuning/evaluation data.
+- [x] Package a new extension release with improved image localization and updated download link.
+- [x] Evaluate Roadmap v2 applicability, dependencies, and execution order before adopting new work.
+- [x] Complete and verify the persisted Strict/Fast image-protection lifecycle with Strict as the default through the shared content-script image pipeline; pending cover must safely resolve to target blur, no overlay, or image-only Review per image.
+- [x] Add strict lifecycle integration coverage for pending → Match target-only blur, pending → No-match reveal, pending → Failure Review, Fast compatibility, and safe document-start startup before considering Strict complete.
+- [x] Introduce a provider-neutral BillingProvider interface and a disabled provider implementation so checkout, webhooks, portal access, and entitlement updates can later be wired without coupling to Stripe.
+- [x] Add unit tests for the BillingProvider contract and the disabled-provider behavior without simulating a successful payment.
+- [x] Add a documented image-evaluation schema, human-labeling rubric, and local metrics runner that requires reviewed JSON cases and never fabricates image data or baseline numbers.
+- [x] Add a release-engineering script that runs type checks, tests, build, extension validation, and packaging in one reproducible command.
+- [x] Add a Paddle BillingProvider adapter that remains disabled without configured credentials and never attempts live collection by default.
+- [x] Add tests for Paddle configuration validation and disabled behavior without initiating live collection.
+- [ ] Deferred by product direction: activate Paddle only after a future explicit request with sandbox credentials, price IDs, webhook secret, and written merchant payout confirmation.
+- [x] Define the Arabic text-moderation API product contract: customer rules, explainable labels, confidence, policy revision, and safe unavailable state.
+- [x] Define the image-moderation API contract separately, including URL-only input, object-localization/no-match/unavailable outcomes, and no retention of image bytes.
+- [x] Document explicit MSA and dialectal-Arabic treatment with Arabic examples and a customer-controlled rule taxonomy.
+- [x] Add an authenticated developer API endpoint and scoped API-key model without exposing the extension’s short-lived policy token as a customer credential.
+- [x] Add a bilingual developer page, OpenAPI-style integration guide, curl example, error contract, and Arabic moderation positioning while keeping the extension as a product demo.
+- [x] Complete endpoint-level API contract tests for match/no_match/unavailable, revoked and wrong-scope key rejection, rate limits, and Arabic/dialect scenarios.
+- [x] Document a measured B2B pilot and customer-discovery plan without fabricated demand, accuracy, revenue, or fine-tuning claims.
+- [x] Define metadata-only API usage records that exclude submitted text, matched phrases, rationales, and image bytes.
+- [x] Add a migrated API usage ledger and server-side recording for developer moderation requests, including outcome counts and latency only.
+- [x] Add an owner-only usage summary to the Developer portal with per-key aggregate counts and no customer-content display.
+- [x] Add privacy and regression tests proving usage telemetry stores no request content and reports safe aggregate outcomes.
+- [x] Replace the timestamp-based unique usage constraint with a non-unique API-key/time index so concurrent pilot requests are never dropped.
+- [x] Add a concurrency-safe usage-ledger regression test and rerun the full release check.
+- [x] Define and publish an OpenAPI 3.1 document for the pilot text-moderation endpoint, auth, request bounds, result states, and safe errors.
+- [x] Link the machine-readable OpenAPI document from the developer portal and integration documentation, then test it against the runtime contract.
+- [x] Profile extension result scanning, candidate collection, semantic batching, visual batching, and repeated DOM work to identify measurable latency and request-volume bottlenecks.
+- [x] Defer off-screen result cards and image candidates with IntersectionObserver while preserving Strict pre-cover only when a candidate becomes visible.
+- [x] Coalesce mutation-driven rescans and deduplicate in-flight text/image decisions by policy revision and content key.
+- [x] Add performance metrics and regression tests proving reduced candidate work and requests without changing Match/No-match/Failure behavior.
+- [x] Package a new extension performance release and update the website download link after full validation.
+- [ ] Add a prominent, accurate declaration that the Chrome extension does not sell user data or use it for advertising, in the public privacy notice and store-listing copy.
+- [ ] Add tests and visual verification for the privacy declaration, then package an updated extension release and provide store-ready wording.
+- [x] Create and deliver an editable architecture diagram explaining the extension text/image paths, model calls, result states, and privacy boundary.
+- [ ] Audit the extension to document that models run server-side through APIs, not locally in the browser, and expose bounded client-side work only.
+- [ ] Introduce a provider-neutral model-routing policy with runtime catalog discovery, capability checks, bounded fallback order, timeouts, and a circuit-breaker state.
+- [ ] Enforce an explicit no-revision contract: semantic and visual checks are independent, each candidate has one bounded decision attempt, and no automatic model-disagreement loop is permitted.
+- [ ] Add fast deterministic bailouts and an explicit offline/network-unavailable path that retains local exact masking without blocking normal browsing.
+- [ ] Run independent text and eligible-image checks concurrently with bounded per-page concurrency while preserving image Match / No match / Failure isolation.
+- [ ] Add a user-facing per-item explanation panel that reports the decision source, exact matched phrase or object outcome, policy rule, confidence band, and safe failure state without revealing model rationale.
+- [ ] Audit search-engine extraction to prefer stable structural anchors and semantic attributes over obfuscated CSS classes, with resilient fallbacks and fixture coverage.
+- [ ] Add regression tests for routing limits, offline fallback, bounded concurrency, explanation content, and selector resilience.

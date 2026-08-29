@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787496265775,
+      "tag": "0000_equal_titania",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1787496446140,
+      "tag": "0001_brave_thaddeus_ross",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787555241699,
+      "tag": "0002_chilly_chimera",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1787567786546,
+      "tag": "0003_wakeful_captain_america",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1787568477749,
+      "tag": "0004_fixed_ogun",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1787569159297,
+      "tag": "0005_overrated_scorpion",
+      "breakpoints": true
+    }
+  ]
+}

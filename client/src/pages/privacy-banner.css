@@ -1,0 +1,31 @@
+.privacy-no-sale {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 760px;
+  margin-top: 22px;
+  padding: 16px 18px;
+  border: 1px solid rgba(114, 224, 189, 0.38);
+  border-radius: 14px;
+  background: linear-gradient(110deg, rgba(114, 224, 189, 0.13), rgba(116, 98, 255, 0.1));
+  color: var(--ink);
+}
+
+.privacy-no-sale svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--mint);
+}
+
+.privacy-no-sale p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.privacy-no-sale strong { color: var(--ink); }
+
+@media (max-width: 620px) {
+  .privacy-no-sale { padding: 14px; font-size: 12px; }
+}

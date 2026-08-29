@@ -1,0 +1,30 @@
+flowchart TD
+  U["1. المستخدم يكتب سياسة<br/>مثال: لا أريد رؤية قطط"] --> P["2. قواعد قابلة للتعديل<br/>بنفس لغة المستخدم"] --> X["3. Copy for Chrome<br/>سياسة موقعة محددة المدة"]
+
+  subgraph B["Chrome MV3 Extension — داخل المتصفح"]
+    S["4. فتح صفحة بحث مدعومة<br/>Google · Bing · DuckDuckGo · Brave · Yahoo · Ecosia"] --> V["5. جدولة قرب الشاشة<br/>لا فحص خارج نطاق العرض"] --> L["6. مطابقة محلية فورية<br/>Unicode + القواعد الدقيقة"]
+    C["Cache + single-flight<br/>10 دقائق · منع الفحص المكرر"]
+  end
+
+  X --> S
+  L -->|"تطابق دقيق"| OT["النص: تمويه العبارة المطابقة فقط<br/>قابل للكشف بالنقر"]
+  L -->|"تطابق يحتاج فهمًا"| C
+  C -->|"عنوان + snippet + link فقط"| ST["Semantic evaluator<br/>Claude Haiku 4.5 افتراضيًا<br/>بدائل: Gemini 3 Flash · GPT-5 mini<br/>JSON مهيكل"]
+  ST --> SD["قرار نص: allow / blur / block / warn<br/>matchedText = النص الظاهر حرفيًا"]
+  SD --> OT
+
+  C -->|"صورة HTTPS عالية الجودة<br/>بعد أن تظهر قرب الشاشة"| VI["Visual localizer<br/>Gemini 3.1 Pro Preview افتراضيًا<br/>بدائل: Gemini 3 Flash · Claude Sonnet<br/>تفاصيل عالية + JSON"]
+  VI --> VD["صندوق ضيق لكل كائن مطابق<br/>ثقة ≥ 0.72 · إزالة التكرار"]
+  VD -->|"Match"| OI["الصورة: تمويه الكائن المطابق فقط"]
+  VD -->|"No match"| ON["لا تغيير للصورة"]
+  VD -->|"تعذر الفحص"| OF["Review للصورة وحدها<br/>مع إعادة المحاولة/استيراد السياسة"]
+
+  subgraph PR["حدود الخصوصية — تنطبق على المسارين"]
+    D1["لا HTML كامل · لا cookies · لا كلمات مرور · لا تاريخ تصفح"]
+    D2["لا بيع لبيانات المستخدم<br/>ولا استخدام للإعلانات"]
+    D3["feedback اختياري ومحلي<br/>إلى أن يصدّره المستخدم"]
+  end
+
+  ST -.-> D1
+  VI -.-> D1
+  D1 --- D2 --- D3

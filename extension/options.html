@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Content Firewall settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header><div class="mark">◈</div><div><p>CONTENT FIREWALL</p><h1>Search protection rules</h1></div><span class="local">Stored in Chrome Sync</span></header>
+      <section class="intro"><strong>Works with your language.</strong><span>Keep terms in Arabic, English, Japanese, Turkish, or any Unicode script. Common safety subjects automatically include related singular, plural, and cross-language aliases—for example, كلب/كلاب also checks dog/dogs—while your original wording always remains visible and editable.</span></section>
+      <section class="import-card"><div><strong>Import a saved web policy</strong><span>In the Content Firewall web app, select a saved policy and choose <b>Copy for Chrome extension</b>. Paste that snapshot here to preserve the exact language, scope, and rules.</span></div><textarea id="importSnapshot" dir="auto" placeholder="Paste policy snapshot JSON"></textarea><button id="importPolicy" class="ghost">Import policy snapshot</button></section>
+      <label class="field"><span>Your preference <small>Optional reference, any language</small></span><textarea id="preference" dir="auto" placeholder="مثال: لا أريد مشاهدة عنف أو قمار"></textarea></label>
+      <section class="settings-grid"><label class="field"><span>Default action</span><select id="defaultAction"><option value="blur">Blur</option><option value="block">Block</option><option value="warn">Warn</option></select></label><div class="field"><span>Apply to search metadata</span><label class="switch-row"><input id="scopeText" type="checkbox" checked /><i></i><b>Titles, snippets, and destination URLs</b></label></div><div class="field"><span>Apply to images</span><label class="switch-row"><input id="scopeImages" type="checkbox" checked /><i></i><b>Image object detection & visual checks</b></label></div><label class="field"><span>Image protection</span><select id="imageProtectionMode"><option value="strict">Strict — cover while checking</option><option value="fast">Fast — show while checking</option></select></label></section>
+      <section class="rules"><div class="rules-head"><div><h2>Editable rules</h2><p>Add one phrase per rule. Use the same script and spelling you expect to see in results.</p></div><button id="addRule" class="ghost">+ Add rule</button></div><div id="ruleList"></div></section>
+      <section class="feedback-card"><div><h2>Improve object detection</h2><p>Optional feedback stays in this browser. Hold <b>Alt</b> and click an unmasked image to report a missed object; hold <b>Shift</b> while revealing a mask to report a false positive. The export includes the sanitized image link, dimensions, search engine, and visual outcome for review. It never uploads automatically and does not train a model by itself.</p></div><label class="switch-row"><input id="feedbackConsent" type="checkbox" /><i></i><b>Keep local detection feedback for export</b></label><div class="feedback-actions"><button id="exportFeedback" class="ghost">Export feedback JSON</button><button id="clearFeedback" class="ghost">Clear local feedback</button><span id="feedbackStatus" role="status"></span></div></section>
+      <footer><span id="status" role="status"></span><button id="save" class="primary">Save protection rules</button></footer>
+    </main>
+    <template id="ruleTemplate"><div class="rule" dir="auto"><input class="term" type="text" placeholder="e.g. gambling · قمار · ギャンブル" /><select class="action"><option value="blur">Blur</option><option value="block">Block</option><option value="warn">Warn</option></select><button class="remove" type="button" aria-label="Remove rule">×</button></div></template>
+    <script src="policy.js"></script>
+    <script src="feedback.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
