@@ -6,12 +6,12 @@ export const privacyPolicySections = [
   {
     icon: Eye,
     title: "What the extension reads",
-    body: "Content Firewall evaluates visible search-result information: result titles, snippets, link text, destination URLs, and HTTPS image URLs when image localization is enabled. It does not read full article pages, browser cookies, form fields, passwords, or your complete browsing history.",
+    body: "Content Firewall evaluates visible search-result information: result titles, snippets, link text, destination URLs, and, when image localization is enabled, result images — as an HTTPS image URL, or as the thumbnail itself when the search page embeds it inline instead of linking it. It does not read full article pages, browser cookies, form fields, passwords, or your complete browsing history.",
   },
   {
     icon: Globe2,
     title: "When data leaves your browser",
-    body: "Exact local matches are handled in the browser. When you import an active policy snapshot, limited batches of visible result text or HTTPS image URLs may be sent to the Content Firewall semantic or vision endpoint for contextual and cross-language decisions. The extension does not send complete page HTML.",
+    body: "Exact local matches are handled in the browser. When you import an active policy snapshot, limited batches of visible result text or result images may be sent to the Content Firewall semantic or vision endpoint for contextual and cross-language decisions. An image is sent as its HTTPS URL where the page provides one; where the search page embeds the thumbnail inline, the extension sends that reduced-size thumbnail instead, because there is no URL to send. Images are used only to answer that one check and are not retained. The extension does not send complete page HTML.",
   },
   {
     icon: Database,

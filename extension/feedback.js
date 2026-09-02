@@ -15,7 +15,14 @@
     return new Promise(resolve => storage.set(value, resolve));
   }
   function safeImageUrl(value) {
-    try { const url = new URL(String(value)); url.search = ""; url.hash = ""; return url.toString().slice(0, 1_500); } catch { return ""; }
+    try {
+      const url = new URL(String(value));
+      // Only a real remote reference is recorded. A data: URL would write the image
+      // bytes themselves into exported feedback, which must stay labels-only.
+      if (url.protocol !== "https:" && url.protocol !== "http:") return "";
+      url.search = ""; url.hash = "";
+      return url.toString().slice(0, 1_500);
+    } catch { return ""; }
   }
   function boundedDimension(value) {
     const number = Number(value);

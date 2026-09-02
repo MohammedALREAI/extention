@@ -30,7 +30,7 @@
       });
       async function requestBatch(batch) {
         try {
-          const response = await globalThis.CFRequestControl.fetchWithDeadline(fetchImpl, endpoint, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${config.token}` }, body: JSON.stringify({ images: batch.map(image => ({ id: image.key, url: image.url, width: image.width, height: image.height })) }) }, globalThis.CFRequestControl.VISUAL_TIMEOUT_MS);
+          const response = await globalThis.CFRequestControl.fetchWithDeadline(fetchImpl, endpoint, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${config.token}` }, body: JSON.stringify({ images: batch.map(image => ({ id: image.key, url: image.url, ...(image.url ? {} : { dataUrl: image.dataUrl }), width: image.width, height: image.height })) }) }, globalThis.CFRequestControl.VISUAL_TIMEOUT_MS);
           if (!response.ok) throw new Error("Visual localizer unavailable.");
           const detections = await response.json();
           if (!Array.isArray(detections)) throw new Error("Visual localizer returned an unexpected payload.");

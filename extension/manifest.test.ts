@@ -15,7 +15,7 @@ describe("production extension manifest", () => {
     const manifest = await loadManifest();
     expect(manifest.manifest_version).toBe(3);
     expect(manifest.name).toBe("Content Firewall — Search Guard");
-    expect(manifest.version).toBe("1.0.9");
+    expect(manifest.version).toBe("1.0.10");
     expect(manifest.description.length).toBeGreaterThanOrEqual(20);
     expect(manifest.description.length).toBeLessThanOrEqual(132);
     expect(manifest.permissions).toEqual(["storage", "tabs"]);

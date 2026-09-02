@@ -68,9 +68,9 @@
       visualTargets = Array.from(imageOwners.entries()).map(([image, card], index) => {
         if (!image.complete) image.addEventListener("load", requestScan, { once: true });
         const source = globalThis.CFImageSource.visualSource(image);
-        return { card, image, key: globalThis.CFImageSource.sourceKey(activePolicy.revision, source, index), url: source.url, inline: source.inline, width: image.naturalWidth, height: image.naturalHeight, precision: engine?.id === "google" };
+        return { card, image, key: globalThis.CFImageSource.sourceKey(activePolicy.revision, source, index), url: source.url, dataUrl: source.dataUrl, width: image.naturalWidth, height: image.naturalHeight, precision: engine?.id === "google" };
       }).filter(candidate => candidate.image.naturalWidth >= 80 && candidate.image.naturalHeight >= 80).slice(0, 12);
-      analyzableImages = visualTargets.filter(candidate => candidate.url);
+      analyzableImages = visualTargets.filter(candidate => candidate.url || candidate.dataUrl);
       performance.record("visualCandidates", analyzableImages.length);
       performance.record("visualBailouts", visualTargets.length - analyzableImages.length);
     } else if (activePolicy.scope?.images) {
@@ -81,7 +81,7 @@
       visualTask: () => visualTargets.length ? globalThis.CFImageDecisionPipeline.precoverAndLocalize({ mode: activePolicy.imageProtectionMode, images: visualTargets, imageMask: globalThis.CFImageMask, localize: () => visualLocalizer.locate(activePolicy.semantic, analyzableImages) }) : Promise.resolve(null),
     });
     const semantic = work.semantic;
-    const visual = globalThis.CFImageFlow.withUnreadableImages(work.visual?.visual || null, visualTargets, activePolicy.imageProtectionMode);
+    const visual = work.visual?.visual || null;
     allCards.forEach(card => {
       const key = card.dataset.cfKey;
       const textDecision = localDecisions.get(key) || semantic.decisions.get(key) || (semantic.available ? { decision: "allow" } : { decision: "uncertain", source: "offline" });

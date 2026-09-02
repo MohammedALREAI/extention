@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Content Firewall — Search Guard",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Multilingual AI protection that masks matching text and objects in search results.",
   "permissions": ["storage", "tabs"],
   "host_permissions": ["https://*.manus.space/*", "https://*.manus.computer/*"],

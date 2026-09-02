@@ -1,5 +1,10 @@
 (() => {
   const INLINE_IMAGE = /^data:image\//i;
+  // Bounds for the inline thumbnail sent to the vision endpoint. Anything larger is
+  // re-encoded down first, so a page cannot push an unbounded payload through.
+  const MAX_INLINE_LENGTH = 120_000;
+  const MAX_SNAPSHOT_LENGTH = 180_000;
+  const SNAPSHOT_EDGE = 512;
 
   function httpsUrl(value) {
     const candidate = String(value || "").trim();
@@ -41,9 +46,44 @@
       .find(value => INLINE_IMAGE.test(value)) || "";
   }
 
-  function visualSource(image) {
+  // An oversized inline thumbnail is re-encoded through a canvas. Reading pixels back
+  // is only possible because a data: image is same-origin; a cross-origin bitmap
+  // taints the canvas and throws, which is caught and reported as no source.
+  function snapshotDataUrl(image, documentRef) {
+    const width = image?.naturalWidth || 0;
+    const height = image?.naturalHeight || 0;
+    if (!width || !height || typeof documentRef?.createElement !== "function") return "";
+    try {
+      const scale = Math.min(1, SNAPSHOT_EDGE / Math.max(width, height));
+      const canvas = documentRef.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      const context = canvas.getContext?.("2d");
+      if (!context) return "";
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const encoded = canvas.toDataURL("image/jpeg", 0.72);
+      return INLINE_IMAGE.test(encoded) && encoded.length <= MAX_SNAPSHOT_LENGTH ? encoded : "";
+    } catch {
+      return "";
+    }
+  }
+
+  function computeSource(image, documentRef) {
     const url = bestVisualUrl(image);
-    return { url, inline: url ? "" : inlineImageUrl(image) };
+    if (url) return { url, inline: "", dataUrl: "", hash: digest(url) };
+    const inline = inlineImageUrl(image);
+    if (!inline) return { url: "", inline: "", dataUrl: "", hash: "" };
+    return { url: "", inline, dataUrl: inline.length <= MAX_INLINE_LENGTH ? inline : snapshotDataUrl(image, documentRef), hash: digest(inline) };
+  }
+
+  // Re-encoding on every scan would be wasteful, so the resolved source is kept on
+  // the element and reused until its own src changes.
+  function visualSource(image, documentRef = globalThis.document) {
+    const signature = `${image?.currentSrc || ""}|${image?.src || ""}|${image?.naturalWidth || 0}x${image?.naturalHeight || 0}`;
+    if (image?.__cfVisualSource?.signature === signature) return image.__cfVisualSource.value;
+    const value = computeSource(image, documentRef);
+    if (image) image.__cfVisualSource = { signature, value };
+    return value;
   }
 
   function digest(value) {
@@ -60,8 +100,9 @@
   // unmatched and is read as a confident no-match, so key on a short digest instead.
   function sourceKey(revision, source, index = 0) {
     const prefix = `${String(revision || "").slice(0, 24)}:img`;
-    return source?.url ? `${prefix}:${digest(source.url)}` : `${prefix}:local:${index}`;
+    const hash = source?.hash || (source?.url ? digest(source.url) : "");
+    return hash ? `${prefix}:${hash}` : `${prefix}:local:${index}`;
   }
 
-  globalThis.CFImageSource = Object.freeze({ bestVisualUrl, srcsetUrls, inlineImageUrl, visualSource, sourceKey });
+  globalThis.CFImageSource = Object.freeze({ bestVisualUrl, srcsetUrls, inlineImageUrl, snapshotDataUrl, visualSource, sourceKey, MAX_INLINE_LENGTH });
 })();

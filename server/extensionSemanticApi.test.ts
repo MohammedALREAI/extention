@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_IMAGE_ID_LENGTH, isAllowedExtensionOrigin, normalizeVisualRequestImages } from "./extensionSemanticApi";
+import { MAX_IMAGE_ID_LENGTH, MAX_INLINE_IMAGE_LENGTH, isAllowedExtensionOrigin, normalizeVisualRequestImages } from "./extensionSemanticApi";
 
 describe("extension semantic API origin policy", () => {
   it("accepts browser extension origins and server-to-server calls without an Origin header", () => {
@@ -25,9 +25,24 @@ describe("visual localization request normalization", () => {
   it("drops an over-long id or a non-HTTPS source instead of silently truncating it", () => {
     const images = normalizeVisualRequestImages([
       { id: "x".repeat(MAX_IMAGE_ID_LENGTH + 1), url: "https://example.test/dog.jpg" },
-      { id: "inline", url: "data:image/jpeg;base64,AAAA" },
+      { id: "spoofed-scheme", url: "javascript:alert(1)" },
       { id: "ok", url: "https://example.test/dog.jpg" },
     ]);
     expect(images.map(image => image.id)).toEqual(["ok"]);
+  });
+
+  it("accepts a bounded inline thumbnail when the page had no URL to send", () => {
+    const dataUrl = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD=";
+    const [image] = normalizeVisualRequestImages([{ id: "inline", url: "", dataUrl, width: 200, height: 130 }]);
+    expect(image.url).toBe(dataUrl);
+  });
+
+  it("rejects an oversized or malformed inline image", () => {
+    const images = normalizeVisualRequestImages([
+      { id: "huge", dataUrl: `data:image/png;base64,${"A".repeat(MAX_INLINE_IMAGE_LENGTH)}` },
+      { id: "not-an-image", dataUrl: "data:text/html;base64,PHNjcmlwdD4=" },
+      { id: "unencoded", dataUrl: "data:image/svg+xml,<svg onload='x()'/>" },
+    ]);
+    expect(images).toEqual([]);
   });
 });

@@ -8,6 +8,11 @@ import { getSubscriptionSummaryForUser } from "./subscriptionService";
 
 type ExtensionClaims = { policyId: number; userId: number; exp: number };
 export const MAX_IMAGE_ID_LENGTH = 120;
+// A search page may embed a result thumbnail inline instead of linking it. Such a
+// thumbnail is accepted as bounded base64 so it can be localized, and like every
+// other image it is passed to the model and never stored.
+export const MAX_INLINE_IMAGE_LENGTH = 200_000;
+const INLINE_IMAGE = /^data:image\/(png|jpe?g|webp|gif|avif);base64,[A-Za-z0-9+/=]+$/i;
 const windowMs = 60_000;
 const requests = new Map<string, { count: number; resetAt: number }>();
 
@@ -72,15 +77,18 @@ export function normalizeVisualRequestImages(submitted: unknown[]) {
     const candidate = item && typeof item === "object" ? item as Record<string, unknown> : {};
     const width = Number(candidate.width);
     const height = Number(candidate.height);
+    const url = typeof candidate.url === "string" ? candidate.url.trim().slice(0, 2000) : "";
+    const dataUrl = typeof candidate.dataUrl === "string" ? candidate.dataUrl.trim() : "";
+    const inline = dataUrl.length <= MAX_INLINE_IMAGE_LENGTH && INLINE_IMAGE.test(dataUrl) ? dataUrl : "";
     return {
       // Never shorten an id. The extension matches detections back to images by
       // id, so a truncated id returns unmatched and reads as a confident no-match.
       id: typeof candidate.id === "string" ? candidate.id.trim() : "",
-      url: typeof candidate.url === "string" ? candidate.url.trim().slice(0, 2000) : "",
+      url: /^https:\/\//i.test(url) ? url : inline,
       width: Number.isFinite(width) && width > 0 && width <= 10_000 ? Math.round(width) : undefined,
       height: Number.isFinite(height) && height > 0 && height <= 10_000 ? Math.round(height) : undefined,
     };
-  }).filter(image => image.id && image.id.length <= MAX_IMAGE_ID_LENGTH && /^https:\/\//i.test(image.url));
+  }).filter(image => image.id && image.id.length <= MAX_IMAGE_ID_LENGTH && image.url);
 }
 
 export function registerExtensionSemanticApi(app: Express) {
@@ -139,7 +147,7 @@ export function registerExtensionSemanticApi(app: Express) {
     if (!allowRequest(token)) return response.status(429).json({ error: "Too many visual checks. Retry shortly." });
     const submitted: unknown[] = Array.isArray(request.body?.images) ? request.body.images.slice(0, 6) : [];
     const images = normalizeVisualRequestImages(submitted);
-    if (!images.length) return response.status(400).json({ error: "At least one HTTPS image URL is required." });
+    if (!images.length) return response.status(400).json({ error: "At least one HTTPS image URL or inline image is required." });
     try {
       const policy = await getPolicyByIdForUser(claims.policyId, claims.userId);
       if (!policy) return response.status(404).json({ error: "Policy not found." });

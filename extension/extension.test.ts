@@ -58,11 +58,27 @@ describe("Google image source selection", () => {
     expect(globalThis.CFImageSource.sourceKey("1787822574723", { url: `${url}#other` }, 0)).not.toBe(key);
   });
 
-  it("keeps an inline base64 thumbnail as a candidate with no remote URL to send", () => {
+  it("sends an inline base64 thumbnail as image data when the page provides no URL", () => {
     const inline = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD";
     const source = globalThis.CFImageSource.visualSource({ currentSrc: inline, src: inline, getAttribute: () => "" });
-    expect(source).toEqual({ url: "", inline });
-    expect(globalThis.CFImageSource.sourceKey("rev", source, 2)).toBe("rev:img:local:2");
+    expect(source).toMatchObject({ url: "", inline, dataUrl: inline });
+    expect(globalThis.CFImageSource.sourceKey("rev", source, 2)).toMatch(/^rev:img:[0-9a-f]{8}$/);
+  });
+
+  it("re-encodes an oversized inline thumbnail through a canvas before sending it", () => {
+    const oversized = `data:image/png;base64,${"A".repeat(globalThis.CFImageSource.MAX_INLINE_LENGTH)}`;
+    const drawn = [];
+    const documentRef = { createElement: () => ({ getContext: () => ({ drawImage: (_image, ...box) => drawn.push(box) }), toDataURL: () => "data:image/jpeg;base64,SMALL" }) };
+    const source = globalThis.CFImageSource.visualSource({ currentSrc: oversized, src: oversized, naturalWidth: 1024, naturalHeight: 768, getAttribute: () => "" }, documentRef);
+    expect(source.dataUrl).toBe("data:image/jpeg;base64,SMALL");
+    expect(drawn).toEqual([[0, 0, 512, 384]]);
+  });
+
+  it("reports no source when the pixels cannot be read back", () => {
+    const oversized = `data:image/png;base64,${"A".repeat(globalThis.CFImageSource.MAX_INLINE_LENGTH)}`;
+    const documentRef = { createElement: () => ({ getContext: () => ({ drawImage: () => undefined }), toDataURL: () => { throw new Error("tainted canvas"); } }) };
+    const source = globalThis.CFImageSource.visualSource({ currentSrc: oversized, src: oversized, naturalWidth: 400, naturalHeight: 400, getAttribute: () => "" }, documentRef);
+    expect(source.dataUrl).toBe("");
   });
 });
 
@@ -189,26 +205,24 @@ describe("visual detection feedback", () => {
 });
 
 describe("images the localizer never saw", () => {
-  it("covers an unreadable image in Strict mode and leaves it visible in Fast mode", () => {
+  it("leaves an image with no readable source visible instead of covering it", () => {
     const candidates = [
       { key: "remote", image: { id: "remote" }, url: "https://example.test/dog.jpg" },
-      { key: "inline", image: { id: "inline" }, url: "", inline: "data:image/jpeg;base64,AAAA" },
+      { key: "sent-inline", image: { id: "sent-inline" }, url: "", dataUrl: "data:image/jpeg;base64,AAAA" },
+      { key: "unreadable", image: { id: "unreadable" }, url: "", dataUrl: "" },
     ];
-    const visual = { detections: new Map([["remote", []]]), unavailableKeys: new Set() };
-    const strict = globalThis.CFImageFlow.withUnreadableImages(visual, candidates, "strict");
-    expect([...strict.unavailableKeys]).toEqual(["inline"]);
-    expect([...strict.unreadableKeys]).toEqual(["inline"]);
-    expect(globalThis.CFImageFlow.withUnreadableImages(visual, candidates, "fast")).toBe(visual);
-
     const reviews = [];
+    const cleared = [];
     const outcome = globalThis.CFImageFlow.applyVisualOutcomes({
       images: candidates,
-      visual: strict,
+      visual: { detections: new Map([["remote", []], ["sent-inline", []]]), unavailableKeys: new Set() },
       feedbackContextFor: () => ({ labels: ["dog"] }),
-      imageMask: { bindMissFeedback: () => undefined, applyBoxes: () => undefined, applyReviewCover: (image, reason) => reviews.push([image.id, reason]) },
+      imageMask: { bindMissFeedback: () => undefined, applyBoxes: (image, boxes) => cleared.push([image.id, boxes.length]), applyReviewCover: (image, reason) => reviews.push([image.id, reason]) },
     });
-    expect(outcome).toEqual({ matched: 0, noMatch: 1, failed: 1 });
-    expect(reviews).toEqual([["inline", globalThis.CFImageFlow.UNREADABLE_REASON]]);
+    expect(outcome).toEqual({ matched: 0, noMatch: 3, failed: 0 });
+    expect(reviews).toEqual([]);
+    // Every candidate is resolved, so a Strict pending cover never stays on screen.
+    expect(cleared).toEqual([["remote", 0], ["sent-inline", 0], ["unreadable", 0]]);
   });
 });
 
@@ -282,7 +296,7 @@ describe("visual result matrix", () => {
     });
     expect(catHost.layers[0].children.map(node => node.className)).toEqual(["cf-object-mask"]);
     expect(dogHost.layers).toHaveLength(0);
-    expect(failedHost.layers[0].children[0]).toMatchObject({ className: "cf-image-review-cover", textContent: expect.stringContaining("re-import policy and retry") });
+    expect(failedHost.layers[0].children[0]).toMatchObject({ className: "cf-image-review-cover", title: expect.stringContaining("re-import policy and retry") });
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
   });
@@ -318,7 +332,7 @@ describe("visual result matrix", () => {
     });
     expect(catHost.layers[0].children[0].className).toBe("cf-object-mask");
     expect(dogHost.layers).toHaveLength(0);
-    expect(failedHost.layers[0].children[0]).toMatchObject({ className: "cf-image-review-cover", textContent: expect.stringContaining("re-import policy and retry") });
+    expect(failedHost.layers[0].children[0]).toMatchObject({ className: "cf-image-review-cover", title: expect.stringContaining("re-import policy and retry") });
     expect(mixedCard.querySelectorAll(".cf-result-guard")).toHaveLength(0);
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
@@ -360,7 +374,7 @@ describe("visual result matrix", () => {
     expect(textFragment.children.map(node => node.className || node)).toEqual(["cf-inline-mask", " and dog article"]);
     expect(catHost.layers[0].children[0].className).toBe("cf-object-mask");
     expect(dogHost.layers).toHaveLength(0);
-    expect(failedHost.layers[0].children[0]).toMatchObject({ className: "cf-image-review-cover", textContent: expect.stringContaining("re-import policy and retry") });
+    expect(failedHost.layers[0].children[0]).toMatchObject({ className: "cf-image-review-cover", title: expect.stringContaining("re-import policy and retry") });
     expect(card.querySelectorAll(".cf-result-guard")).toHaveLength(0);
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
@@ -476,8 +490,12 @@ describe("targeted content masking", () => {
     ]);
   });
 
-  it("maps only the detected dog rectangle to the image overlay", () => {
-    expect(globalThis.CFImageMask.boxStyle({ x: 521, y: 252, width: 254, height: 576 })).toEqual({ left: "52.1%", top: "25.2%", width: "25.4%", height: "57.6%" });
+  it("maps only the detected dog rectangle to the image overlay, with a feather margin around it", () => {
+    // 14% of the box on each side: the soft edge falls outside the detection, so the
+    // detected object stays under the fully opaque core.
+    expect(globalThis.CFImageMask.boxStyle({ x: 521, y: 252, width: 254, height: 576 })).toEqual({ left: "48.54%", top: "17.14%", width: "32.51%", height: "73.73%" });
+    // A detection touching the image edge stays inside the image instead of overflowing it.
+    expect(globalThis.CFImageMask.boxStyle({ x: 0, y: 400, width: 300, height: 600 })).toEqual({ left: "0%", top: "31.6%", width: "34.2%", height: "68.4%" });
   });
 
   it("replaces only the matching word in a mock result text node with a reversible inline mask", () => {
@@ -518,7 +536,7 @@ describe("targeted content masking", () => {
     const image = { parentElement: host };
     expect(globalThis.CFImageMask.applyBoxes(image, [{ x: 521, y: 252, width: 254, height: 576, label: "dog" }])).toBe(1);
     expect(layer.children).toHaveLength(1);
-    expect(layer.children[0].style).toMatchObject({ left: "52.1%", top: "25.2%", width: "25.4%", height: "57.6%" });
+    expect(layer.children[0].style).toMatchObject({ left: "48.54%", top: "17.14%", width: "32.51%", height: "73.73%" });
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
   });
@@ -536,8 +554,8 @@ describe("targeted content masking", () => {
     expect(globalThis.CFEngines.cardsForDocument(googleDocument, "https://www.google.com/search?q=cats").cards).toEqual([googleCard]);
     globalThis.CFImageMask.applyBoxes(image, [{ x: 281, y: 472, width: 274, height: 376, label: "cat" }]);
     expect(layer.children).toHaveLength(1);
-    expect(layer.children[0].style).toMatchObject({ left: "28.1%", top: "47.2%", width: "27.4%", height: "37.6%" });
-    expect(layer.children.some(mask => mask.style.left === "52.1%")).toBe(false);
+    expect(layer.children[0].style).toMatchObject({ left: "24.26%", top: "41.94%", width: "35.07%", height: "48.13%" });
+    expect(layer.children.some(mask => mask.style.left === "48.54%")).toBe(false);
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
   });
