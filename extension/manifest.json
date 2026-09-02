@@ -4,7 +4,7 @@
   "version": "1.0.10",
   "description": "Multilingual AI protection that masks matching text and objects in search results.",
   "permissions": ["storage", "tabs"],
-  "host_permissions": ["https://*.manus.space/*", "https://*.manus.computer/*"],
+  "host_permissions": ["http://localhost/*", "http://127.0.0.1/*"],
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -28,7 +28,7 @@
   "content_scripts": [
     {
       "matches": ["https://*/*", "http://*/*"],
-      "js": ["policy.js", "engines.js", "contentHelpers.js", "contentRuntime.js", "contentStartup.js", "visibilityScheduler.js", "performanceMetrics.js", "requestControl.js", "workScheduler.js", "imageSource.js", "semanticClient.js", "visualClient.js", "contentFlow.js", "textMask.js", "feedback.js", "imageMask.js", "strictImageFlow.js", "imageDecisionPipeline.js", "imageFlow.js", "decisionExplanation.js", "contentPipeline.js", "contentCount.js", "contentCleanup.js", "content.js"],
+      "js": ["policy.js", "engines.js", "contentHelpers.js", "contentRuntime.js", "contentStartup.js", "visibilityScheduler.js", "performanceMetrics.js", "requestControl.js", "workScheduler.js", "imageSource.js", "imageContext.js", "semanticClient.js", "visualClient.js", "contentFlow.js", "textMask.js", "feedback.js", "imageMask.js", "strictImageFlow.js", "imageDecisionPipeline.js", "imageFlow.js", "decisionExplanation.js", "contentPipeline.js", "contentCount.js", "contentCleanup.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_start"
     }

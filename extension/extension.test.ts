@@ -8,6 +8,7 @@ beforeAll(async () => {
   await import("./policy.js");
   await import("./engines.js");
   await import("./imageSource.js");
+  await import("./imageContext.js");
   await import("./contentHelpers.js");
   await import("./contentRuntime.js");
   await import("./contentStartup.js");
@@ -124,7 +125,9 @@ describe("Strict image protection mode", () => {
     });
     expect(catHost.layers[0].children[0].className).toBe("cf-object-mask");
     expect(dogHost.layers).toHaveLength(0);
-    expect(failedHost.layers[0].children[0].className).toBe("cf-image-review-cover");
+    // An incomplete check clears its pending cover instead of leaving the whole
+    // picture behind one.
+    expect(failedHost.layers).toHaveLength(0);
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
   });
@@ -174,6 +177,33 @@ describe("Strict image protection mode", () => {
     globalThis.getComputedStyle = previousStyle;
   });
 
+  it("detects an orphaned content script after the extension is reloaded", () => {
+    const previousChrome = globalThis.chrome;
+    globalThis.chrome = { runtime: { id: "abcdefghijklmnopabcdefghijklmnop" } };
+    expect(globalThis.CFContentStartup.extensionAlive()).toBe(true);
+    // Chrome drops runtime.id on the old context once the extension reloads.
+    globalThis.chrome = { runtime: {} };
+    expect(globalThis.CFContentStartup.extensionAlive()).toBe(false);
+    // Some builds throw on the property access itself rather than returning undefined.
+    globalThis.chrome = { get runtime() { throw new Error("Extension context invalidated."); } };
+    expect(globalThis.CFContentStartup.extensionAlive()).toBe(false);
+    globalThis.chrome = previousChrome;
+  });
+
+  it("swallows a synchronous throw and a rejected promise from an invalidated context", async () => {
+    const previousChrome = globalThis.chrome;
+    globalThis.chrome = { runtime: { id: "abcdefghijklmnopabcdefghijklmnop" } };
+    expect(globalThis.CFContentStartup.safeExtensionCall(() => { throw new Error("Extension context invalidated."); })).toBe(false);
+    let rejected;
+    expect(globalThis.CFContentStartup.safeExtensionCall(() => { rejected = Promise.reject(new Error("Extension context invalidated.")); return rejected; })).toBe(true);
+    await expect(rejected).rejects.toThrow("Extension context invalidated.");
+    globalThis.chrome = { runtime: {} };
+    let ran = false;
+    expect(globalThis.CFContentStartup.safeExtensionCall(() => { ran = true; })).toBe(false);
+    expect(ran).toBe(false);
+    globalThis.chrome = previousChrome;
+  });
+
   it("waits safely for the document root when document_start runs before the DOM exists", () => {
     let listener; let calls = 0;
     const documentRef = { documentElement: null, addEventListener: (_type, callback) => { listener = callback; } };
@@ -204,6 +234,147 @@ describe("visual detection feedback", () => {
   });
 });
 
+describe("result ids that survive the API bound", () => {
+  it("keys a long result on a digest so the semantic id round-trips", () => {
+    const text = `A very long search result snippet. ${"word ".repeat(200)}`;
+    const key = `1787822574723:txt:${globalThis.CFContent.digest(text.slice(0, 3200))}`;
+    // The endpoint bounds result ids at 80 characters; a raw key is far longer, and a
+    // shortened id comes back unmatched, which the card reads as "allow".
+    expect(key.length).toBeLessThanOrEqual(80);
+    expect(globalThis.CFContent.digest(text)).toBe(globalThis.CFContent.digest(text));
+    expect(globalThis.CFContent.digest(text)).not.toBe(globalThis.CFContent.digest(`${text}!`));
+  });
+});
+
+describe("caption context for the visual check", () => {
+  const imageWith = (attributes, ancestor = null) => ({
+    getAttribute: name => attributes[name] || "",
+    closest: selector => (selector === "figure" ? ancestor?.figure : ancestor?.link) || null,
+  });
+
+  it("collects alt, title, caption and the owning heading without repeating itself", () => {
+    const ancestor = {
+      figure: { querySelector: () => ({ textContent: "  A dog\nand a cat  " }) },
+      link: { getAttribute: () => "When Dogs and Cats Play" },
+    };
+    const card = { querySelector: () => ({ textContent: "Dogs and cats living together" }) };
+    const context = globalThis.CFImageContext.describeImage(imageWith({ alt: "Dog", title: "Dog" }, ancestor), card);
+    expect(context).toBe("Dog · A dog and a cat · When Dogs and Cats Play · Dogs and cats living together");
+  });
+
+  it("strips control characters and bounds the length so a page cannot pad the prompt", () => {
+    const long = globalThis.CFImageContext.describeImage(imageWith({ alt: `dog ‮${"x".repeat(400)}` }), null);
+    expect(long.length).toBe(globalThis.CFImageContext.MAX_CONTEXT_LENGTH);
+    expect(long).not.toMatch(/[ ‮]/);
+  });
+
+  it("returns nothing when an image carries no describing text at all", () => {
+    expect(globalThis.CFImageContext.describeImage(imageWith({}), null)).toBe("");
+    expect(globalThis.CFImageContext.describeImage(null, null)).toBe("");
+  });
+
+  it("sends the caption alongside the image so the model can use it as a hint", async () => {
+    let sent;
+    const localizer = globalThis.CFVisual.createVisualLocalizer(async (_url, options) => {
+      sent = JSON.parse(options.body).images[0];
+      return { ok: true, json: async () => [{ id: sent.id, boxes: [] }] };
+    });
+    await localizer.locate({ endpoint: "https://example.test", token: "live", expiresAt: Date.now() + 1_000 }, [{ key: "image-1", url: "https://example.test/dog.jpg", context: "Dog vs Cat" }]);
+    expect(sent.context).toBe("Dog vs Cat");
+  });
+});
+
+describe("image sweep beyond text result cards", () => {
+  it("finds the knowledge panel and video shelf regions Google keeps outside result cards", () => {
+    const panelImage = { id: "panel" };
+    const shelfImage = { id: "shelf" };
+    const panel = { nodeType: 1, querySelectorAll: () => [panelImage] };
+    const shelf = { nodeType: 1, querySelectorAll: () => [shelfImage] };
+    const documentRef = { querySelectorAll: selector => ({ "#center_col": [shelf], "#rhs": [panel] }[selector] || []) };
+    const { regions } = globalThis.CFEngines.imageRegionsForDocument(documentRef, "https://www.google.com/search?q=cats");
+    expect(regions).toEqual([shelf, panel]);
+    expect(regions.flatMap(region => region.querySelectorAll("img"))).toEqual([shelfImage, panelImage]);
+  });
+
+  it("still reaches the complementary side panel when Google renames its container id", () => {
+    // "نتائج تكميلية" — the side panel keeps its ARIA role even when #rhs is gone.
+    const sidePanel = { nodeType: 1 };
+    const documentRef = { querySelectorAll: selector => selector === "div[role='complementary']" ? [sidePanel] : [] };
+    expect(globalThis.CFEngines.imageRegionsForDocument(documentRef, "https://www.google.com/search?q=cats").regions).toEqual([sidePanel]);
+  });
+
+  it("falls back to the main region on a search engine with no dedicated selectors", () => {
+    const main = { nodeType: 1 };
+    const documentRef = { querySelectorAll: selector => selector === "div[role='main']" ? [main] : [] };
+    expect(globalThis.CFEngines.imageRegionsForDocument(documentRef, "https://search.example.test/results?query=cats").regions).toEqual([main]);
+  });
+
+  it("reports no regions on a page that is not a search page at all", () => {
+    const documentRef = { querySelectorAll: () => [{ nodeType: 1 }] };
+    expect(globalThis.CFEngines.imageRegionsForDocument(documentRef, "https://example.test/article").regions).toEqual([]);
+  });
+});
+
+describe("adaptive blur rendering", () => {
+  const renderMask = (box, image = {}, context = {}) => {
+    const previousDocument = globalThis.document;
+    const previousStyle = globalThis.getComputedStyle;
+    const layer = { className: "", style: {}, children: [], appendChild(node) { this.children.push(node); } };
+    const host = { style: {}, querySelectorAll: () => [], appendChild: () => undefined };
+    globalThis.getComputedStyle = () => ({ position: "static" });
+    globalThis.document = { createElement: tag => tag === "div" ? layer : { type: "", className: "", title: "", style: {}, dataset: {}, addEventListener: () => undefined } };
+    globalThis.CFImageMask.applyBoxes({ parentElement: host, dataset: {}, ...image }, [box], context);
+    globalThis.document = previousDocument;
+    globalThis.getComputedStyle = previousStyle;
+    return layer.children[0];
+  };
+
+  it("labels each mask with the size class that drives its blur strength", () => {
+    expect(globalThis.CFImageMask.sizeClassForArea(49_999)).toBe("small");
+    expect(globalThis.CFImageMask.sizeClassForArea(150_000)).toBe("medium");
+    expect(globalThis.CFImageMask.sizeClassForArea(250_001)).toBe("large");
+    expect(renderMask({ x: 400, y: 400, width: 150, height: 150, label: "dog" }).dataset.cfSize).toBe("small");
+    expect(renderMask({ x: 200, y: 200, width: 600, height: 600, label: "dog" }).dataset.cfSize).toBe("large");
+  });
+
+  it("marks only the sides a detection actually sits on, corners included", () => {
+    const corner = renderMask({ x: 0, y: 0, width: 300, height: 300, label: "dog" }).dataset;
+    expect(corner).toMatchObject({ cfEdgeLeft: "", cfEdgeTop: "" });
+    expect(corner.cfEdgeRight).toBeUndefined();
+    expect(corner.cfEdgeBottom).toBeUndefined();
+    const inside = renderMask({ x: 300, y: 300, width: 300, height: 300, label: "dog" }).dataset;
+    expect(inside.cfEdgeLeft).toBeUndefined();
+    expect(inside.cfEdgeTop).toBeUndefined();
+  });
+
+  it("widens the margin for a small object and tightens it for a dominant one", () => {
+    expect(globalThis.CFImageMask.adaptiveMargin({ width: 100, height: 100 })).toBe(0.18);
+    expect(globalThis.CFImageMask.adaptiveMargin({ width: 600, height: 600 })).toBe(0.1);
+    expect(globalThis.CFImageMask.adaptiveMargin({ width: 400, height: 400 })).toBeCloseTo(0.136, 5);
+  });
+
+  it("raises the margin to a pixel floor on a small thumbnail so the feather stays visible", () => {
+    const box = { x: 400, y: 400, width: 60, height: 60 };
+    // 18% of 60 normalized units is under a pixel on a 200px thumbnail, so the
+    // 6px floor takes over; a large source image keeps the fraction.
+    expect(globalThis.CFImageMask.marginUnits(box, 200, 200)).toEqual({ x: 30, y: 30 });
+    expect(globalThis.CFImageMask.marginUnits(box, 2000, 2000).x).toBeCloseTo(10.8, 5);
+    expect(globalThis.CFImageMask.boxStyle(box, 200, 200)).toMatchObject({ left: "37%", width: "12%" });
+  });
+
+  it("stamps an explicit blur intensity and leaves auto to the size class", () => {
+    expect(renderMask({ x: 100, y: 100, width: 300, height: 300, label: "dog" }, {}, { blurIntensity: "strong" }).dataset.cfIntensity).toBe("strong");
+    expect(renderMask({ x: 100, y: 100, width: 300, height: 300, label: "dog" }, {}, { blurIntensity: "auto" }).dataset.cfIntensity).toBeUndefined();
+    expect(renderMask({ x: 100, y: 100, width: 300, height: 300, label: "dog" }).dataset.cfIntensity).toBeUndefined();
+  });
+
+  it("keeps blur intensity in the policy with auto as the default", () => {
+    expect(globalThis.CFPolicy.defaultPolicy().blurIntensity).toBe("auto");
+    expect(globalThis.CFPolicy.sanitizePolicy({ blurIntensity: "strong" }).blurIntensity).toBe("strong");
+    expect(globalThis.CFPolicy.sanitizePolicy({ blurIntensity: "enormous" }).blurIntensity).toBe("auto");
+  });
+});
+
 describe("images the localizer never saw", () => {
   it("leaves an image with no readable source visible instead of covering it", () => {
     const candidates = [
@@ -227,7 +398,7 @@ describe("images the localizer never saw", () => {
 });
 
 describe("visual result matrix", () => {
-  it("applies only matched boxes, leaves no-match images untouched, and reserves Review with retry guidance for failures", () => {
+  it("applies only matched boxes and covers nothing for a no-match or an incomplete check", () => {
     const images = [{ key: "cat", image: { id: "cat" }, url: "https://example.test/cat.jpg" }, { key: "dog", image: { id: "dog" }, url: "https://example.test/dog.jpg" }, { key: "failed", image: { id: "failed" }, url: "https://example.test/failed.jpg" }];
     const calls = { bind: [], boxes: [], reviews: [] };
     const imageMask = {
@@ -238,9 +409,10 @@ describe("visual result matrix", () => {
     const visual = { detections: new Map([["cat", [{ x: 200, y: 150, width: 300, height: 350, label: "cat", confidence: 0.95 }]], ["dog", []]]), unavailableKeys: new Set(["failed"]) };
     const result = globalThis.CFImageFlow.applyVisualOutcomes({ images, visual, feedbackContextFor: image => ({ labels: ["cat"], imageUrl: image.url, policyRevision: "v1" }), imageMask });
     expect(result).toEqual({ matched: 1, noMatch: 1, failed: 1 });
-    expect(calls.boxes).toEqual([["cat", [expect.objectContaining({ label: "cat" })]], ["dog", []]]);
-    expect(calls.reviews).toEqual([["failed", "Visual check unavailable — re-import policy and retry"]]);
-    expect(calls.reviews.some(([id]) => id === "dog")).toBe(false);
+    // The failed image is resolved with an empty box list, which draws nothing and
+    // clears any Strict pending cover. It is still counted so the popup can report it.
+    expect(calls.boxes).toEqual([["cat", [expect.objectContaining({ label: "cat" })]], ["dog", []], ["failed", []]]);
+    expect(calls.reviews).toEqual([]);
   });
 
   it("passes every distinct target box through for a three-cat image", () => {
@@ -296,7 +468,7 @@ describe("visual result matrix", () => {
     });
     expect(catHost.layers[0].children.map(node => node.className)).toEqual(["cf-object-mask"]);
     expect(dogHost.layers).toHaveLength(0);
-    expect(failedHost.layers[0].children[0]).toMatchObject({ className: "cf-image-review-cover", title: expect.stringContaining("re-import policy and retry") });
+    expect(failedHost.layers).toHaveLength(0);
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
   });
@@ -332,7 +504,7 @@ describe("visual result matrix", () => {
     });
     expect(catHost.layers[0].children[0].className).toBe("cf-object-mask");
     expect(dogHost.layers).toHaveLength(0);
-    expect(failedHost.layers[0].children[0]).toMatchObject({ className: "cf-image-review-cover", title: expect.stringContaining("re-import policy and retry") });
+    expect(failedHost.layers).toHaveLength(0);
     expect(mixedCard.querySelectorAll(".cf-result-guard")).toHaveLength(0);
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
@@ -374,7 +546,7 @@ describe("visual result matrix", () => {
     expect(textFragment.children.map(node => node.className || node)).toEqual(["cf-inline-mask", " and dog article"]);
     expect(catHost.layers[0].children[0].className).toBe("cf-object-mask");
     expect(dogHost.layers).toHaveLength(0);
-    expect(failedHost.layers[0].children[0]).toMatchObject({ className: "cf-image-review-cover", title: expect.stringContaining("re-import policy and retry") });
+    expect(failedHost.layers).toHaveLength(0);
     expect(card.querySelectorAll(".cf-result-guard")).toHaveLength(0);
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
@@ -491,11 +663,18 @@ describe("targeted content masking", () => {
   });
 
   it("maps only the detected dog rectangle to the image overlay, with a feather margin around it", () => {
-    // 14% of the box on each side: the soft edge falls outside the detection, so the
-    // detected object stays under the fully opaque core.
-    expect(globalThis.CFImageMask.boxStyle({ x: 521, y: 252, width: 254, height: 576 })).toEqual({ left: "48.54%", top: "17.14%", width: "32.51%", height: "73.73%" });
-    // A detection touching the image edge stays inside the image instead of overflowing it.
-    expect(globalThis.CFImageMask.boxStyle({ x: 0, y: 400, width: 300, height: 600 })).toEqual({ left: "0%", top: "31.6%", width: "34.2%", height: "68.4%" });
+    // The soft edge falls outside the detection, so the object stays under the
+    // fully opaque core.
+    expect(globalThis.CFImageMask.boxStyle({ x: 521, y: 252, width: 254, height: 576 })).toEqual({
+      left: "48.51%", top: "17.05%", width: "32.59%", height: "73.9%",
+      edges: { left: false, top: false, right: false, bottom: false },
+    });
+    // A detection touching the image edge stays inside the image instead of
+    // overflowing it, and reports which sides it sits on.
+    expect(globalThis.CFImageMask.boxStyle({ x: 0, y: 400, width: 300, height: 600 })).toEqual({
+      left: "0%", top: "32.32%", width: "33.84%", height: "67.68%",
+      edges: { left: true, top: false, right: false, bottom: true },
+    });
   });
 
   it("replaces only the matching word in a mock result text node with a reversible inline mask", () => {
@@ -536,7 +715,7 @@ describe("targeted content masking", () => {
     const image = { parentElement: host };
     expect(globalThis.CFImageMask.applyBoxes(image, [{ x: 521, y: 252, width: 254, height: 576, label: "dog" }])).toBe(1);
     expect(layer.children).toHaveLength(1);
-    expect(layer.children[0].style).toMatchObject({ left: "48.54%", top: "17.14%", width: "32.51%", height: "73.73%" });
+    expect(layer.children[0].style).toMatchObject({ left: "48.51%", top: "17.05%", width: "32.59%", height: "73.9%" });
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
   });
@@ -554,8 +733,8 @@ describe("targeted content masking", () => {
     expect(globalThis.CFEngines.cardsForDocument(googleDocument, "https://www.google.com/search?q=cats").cards).toEqual([googleCard]);
     globalThis.CFImageMask.applyBoxes(image, [{ x: 281, y: 472, width: 274, height: 376, label: "cat" }]);
     expect(layer.children).toHaveLength(1);
-    expect(layer.children[0].style).toMatchObject({ left: "24.26%", top: "41.94%", width: "35.07%", height: "48.13%" });
-    expect(layer.children.some(mask => mask.style.left === "48.54%")).toBe(false);
+    expect(layer.children[0].style).toMatchObject({ left: "23.75%", top: "41.23%", width: "36.1%", height: "49.54%" });
+    expect(layer.children.some(mask => mask.style.left === "48.51%")).toBe(false);
     globalThis.document = previousDocument;
     globalThis.getComputedStyle = previousStyle;
   });
@@ -625,7 +804,7 @@ describe("targeted content masking", () => {
     await expect(Promise.all([first, second])).resolves.toEqual([expect.objectContaining({ state: "ready" }), expect.objectContaining({ state: "ready" })]);
   });
 
-  it("analyzes precision Google image candidates one at a time", async () => {
+  it("batches precision Google images in pairs rather than one call per image", async () => {
     const requests = [];
     const localizer = globalThis.CFVisual.createVisualLocalizer(async (_url, options) => {
       const payload = JSON.parse(options.body);
@@ -634,7 +813,9 @@ describe("targeted content masking", () => {
     });
     const images = Array.from({ length: 3 }, (_, index) => ({ key: `google-${index}`, url: `https://images.example/${index}.jpg`, precision: true }));
     expect((await localizer.locate({ endpoint: "https://example.test", token: "live", expiresAt: Date.now() + 1_000 }, images)).state).toBe("ready");
-    expect(requests.map(batch => batch.length)).toEqual([1, 1, 1]);
+    // A page of single-image calls was slow enough to time out and burned the request
+    // budget; the prompt still requires each image to be judged on its own.
+    expect(requests.map(batch => batch.length)).toEqual([2, 1]);
   });
 
   it("keeps Google precision candidates isolated while retaining small batches for ordinary images", async () => {
@@ -661,17 +842,33 @@ describe("targeted content masking", () => {
   });
 
   it("retains localized boxes from a successful batch when a different image batch is unavailable", async () => {
-    let call = 0;
+    let attempts = 0;
     const localizer = globalThis.CFVisual.createVisualLocalizer(async (_url, options) => {
-      call += 1;
-      if (call === 1) throw new Error("network unavailable");
-      return { ok: true, json: async () => JSON.parse(options.body).images.map(image => ({ id: image.id, boxes: [{ x: 200, y: 200, width: 300, height: 300, label: "cat", confidence: 0.94 }] })) };
+      const payload = JSON.parse(options.body);
+      // This batch fails its attempt and its retry; the other batches must still land.
+      if (payload.images.some(image => image.id === "image-0")) { attempts += 1; throw new Error("network unavailable"); }
+      return { ok: true, json: async () => payload.images.map(image => ({ id: image.id, boxes: [{ x: 200, y: 200, width: 300, height: 300, label: "cat", confidence: 0.94 }] })) };
     });
     const images = Array.from({ length: 7 }, (_, index) => ({ key: `image-${index}`, url: `https://example.test/${index}.jpg` }));
     const result = await localizer.locate({ endpoint: "https://example.test", token: "live", expiresAt: Date.now() + 1_000 }, images);
+    expect(attempts).toBe(2);
     expect(result.state).toBe("partial");
+    expect(result.reason).toBe("service_unavailable");
     expect(result.unavailableKeys.size).toBe(3);
     expect(result.detections.get("image-6")).toHaveLength(1);
+  });
+
+  it("retries a timed-out batch once but never retries a refused one", async () => {
+    const attempts = { timeout: 0, refused: 0 };
+    const timingOut = globalThis.CFVisual.createVisualLocalizer(async () => { attempts.timeout += 1; throw new Error("Remote evaluation timed out."); });
+    const timeoutResult = await timingOut.locate({ endpoint: "https://example.test", token: "live", expiresAt: Date.now() + 1_000 }, [{ key: "image-1", url: "https://example.test/dog.jpg" }]);
+    expect(attempts.timeout).toBe(2);
+    expect(timeoutResult.reason).toBe("service_unavailable");
+    // Retrying a refusal only burns the request budget, and the answer will not change.
+    const refused = globalThis.CFVisual.createVisualLocalizer(async () => { attempts.refused += 1; return { ok: false, status: 402, json: async () => ({}) }; });
+    const refusedResult = await refused.locate({ endpoint: "https://example.test", token: "live", expiresAt: Date.now() + 1_000 }, [{ key: "image-1", url: "https://example.test/dog.jpg" }]);
+    expect(attempts.refused).toBe(1);
+    expect(refusedResult.reason).toBe("access_ended");
   });
 });
 

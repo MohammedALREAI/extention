@@ -21,7 +21,7 @@ const user = {
   openId: "firewall-test-user",
   name: "Firewall Tester",
   email: "tester@example.com",
-  loginMethod: "manus",
+  loginMethod: "oauth",
   role: "user" as const,
   createdAt: new Date(),
   updatedAt: new Date(),

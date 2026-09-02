@@ -3,6 +3,7 @@ import express from "express";
 import type { NextFunction, Request, Response } from "express";
 import { createServer } from "http";
 import net from "net";
+import path from "node:path";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
@@ -34,7 +35,9 @@ export function productionContentSecurityPolicy(endpoint = process.env.VITE_ANAL
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' data: https://fonts.gstatic.com",
     `script-src 'self'${analyticsSource}`,
-    `connect-src 'self' https://*.manus.space https://*.manus.computer${analyticsSource}`,
+    // The app and its API share an origin, so 'self' is all the page needs. Naming
+    // extra hosts here only widened where the page was allowed to connect.
+    `connect-src 'self'${analyticsSource}`,
   ].join("; ");
 }
 
@@ -60,7 +63,7 @@ function isPortAvailable(port: number): Promise<boolean> {
   });
 }
 
-async function findAvailablePort(startPort: number = 3000): Promise<number> {
+async function findAvailablePort(startPort: number = 3001): Promise<number> {
   for (let port = startPort; port < startPort + 20; port++) {
     if (await isPortAvailable(port)) {
       return port;
@@ -90,12 +93,15 @@ async function startServer() {
   );
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV !== "production") {
+    // The acceptance fixture lives outside the Vite root, so without this it falls
+    // through to the SPA and silently renders the app instead of the test page.
+    app.use("/eval", express.static(path.resolve(import.meta.dirname, "..", "..", "eval")));
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  const preferredPort = parseInt(process.env.PORT || "3000");
+  const preferredPort = parseInt(process.env.PORT || "3001");
   const port = await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {

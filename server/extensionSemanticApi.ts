@@ -5,6 +5,7 @@ import { ENV } from "./_core/env";
 import { evaluateSemantically } from "./semanticFirewall";
 import { localizeVisualMatches } from "./visualLocalization";
 import { getSubscriptionSummaryForUser } from "./subscriptionService";
+import type { FirewallRule } from "./firewall";
 
 type ExtensionClaims = { policyId: number; userId: number; exp: number };
 export const MAX_IMAGE_ID_LENGTH = 120;
@@ -13,6 +14,19 @@ export const MAX_IMAGE_ID_LENGTH = 120;
 // other image it is passed to the model and never stored.
 export const MAX_INLINE_IMAGE_LENGTH = 200_000;
 const INLINE_IMAGE = /^data:image\/(png|jpe?g|webp|gif|avif);base64,[A-Za-z0-9+/=]+$/i;
+// The caption travelling with an image is page-controlled text used as a hint for the
+// visual check. It is bounded and stripped of control characters here; the prompt itself
+// marks it untrusted so it can never act as an instruction.
+export const MAX_IMAGE_CONTEXT_LENGTH = 200;
+
+// Controls, zero-width characters and bidi overrides: invisible in a review of the
+// stored text, but able to reshape how the prompt reads.
+const INVISIBLE_TEXT = /[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]/g;
+
+function imageContext(value: unknown) {
+  if (typeof value !== "string") return "";
+  return value.normalize("NFC").replace(INVISIBLE_TEXT, " ").replace(/\s+/g, " ").trim().slice(0, MAX_IMAGE_CONTEXT_LENGTH);
+}
 const windowMs = 60_000;
 const requests = new Map<string, { count: number; resetAt: number }>();
 
@@ -67,7 +81,9 @@ function allowRequest(token: string) {
     requests.set(token, { count: 1, resetAt: now + windowMs });
     return true;
   }
-  if (current.count >= 40) return false;
+  // Object-level coverage checks every on-screen image in small batches, so one
+  // image-heavy page legitimately spends far more than the original 40 per minute.
+  if (current.count >= 90) return false;
   current.count += 1;
   return true;
 }
@@ -87,8 +103,29 @@ export function normalizeVisualRequestImages(submitted: unknown[]) {
       url: /^https:\/\//i.test(url) ? url : inline,
       width: Number.isFinite(width) && width > 0 && width <= 10_000 ? Math.round(width) : undefined,
       height: Number.isFinite(height) && height > 0 && height <= 10_000 ? Math.round(height) : undefined,
+      context: imageContext(candidate.context),
     };
   }).filter(image => image.id && image.id.length <= MAX_IMAGE_ID_LENGTH && image.url);
+}
+
+type ResolvedPolicy = { sourcePreference: string; rulesJson: FirewallRule[] };
+
+/**
+ * Local development only. Skips the token, user, subscription and policy lookups so the
+ * extension can be pointed at a laptop with no database at all.
+ *
+ * Double-gated on purpose: NODE_ENV must not be production AND the flag must be set
+ * explicitly, so it can never be switched on by a stray environment variable in a
+ * deployed build. It is what stands between the endpoint and anyone on the internet.
+ */
+export function devAuthBypassEnabled(env: NodeJS.ProcessEnv = process.env) {
+  return env.NODE_ENV !== "production" && env.CF_DEV_NO_AUTH === "1";
+}
+
+export function devPolicy(env: NodeJS.ProcessEnv = process.env): ResolvedPolicy {
+  const terms = String(env.CF_DEV_RULES || "dog").split(",").map(term => term.trim()).filter(Boolean);
+  const rules = (terms.length ? terms : ["dog"]).map(term => ({ term, action: "blur" as const }));
+  return { sourcePreference: `Do not show me: ${rules.map(rule => rule.term).join(", ")}`, rulesJson: rules };
 }
 
 export function registerExtensionSemanticApi(app: Express) {
@@ -103,14 +140,20 @@ export function registerExtensionSemanticApi(app: Express) {
 
   app.post("/api/extension/semantic-evaluate", async (request: Request, response: Response) => {
     if (!allowCors(request, response)) return response.status(403).json({ error: "Extension origin required." });
-    const token = request.header("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-    const claims = verifyExtensionAccessToken(token);
-    if (!claims) return response.status(401).json({ error: "Invalid extension access token." });
-    const user = await getUserById(claims.userId);
-    if (!user) return response.status(401).json({ error: "Subscription account was not found." });
-    const subscription = await getSubscriptionSummaryForUser(user);
-    if (!subscription.hasAccess) return response.status(402).json({ error: "Trial or subscription access has ended." });
-    if (!allowRequest(token)) return response.status(429).json({ error: "Too many semantic evaluations. Retry shortly." });
+    let policy: ResolvedPolicy | null = devAuthBypassEnabled() ? devPolicy() : null;
+    if (!policy) {
+      const token = request.header("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+      const claims = verifyExtensionAccessToken(token);
+      if (!claims) return response.status(401).json({ error: "Invalid extension access token." });
+      const user = await getUserById(claims.userId);
+      if (!user) return response.status(401).json({ error: "Subscription account was not found." });
+      const subscription = await getSubscriptionSummaryForUser(user);
+      if (!subscription.hasAccess) return response.status(402).json({ error: "Trial or subscription access has ended." });
+      if (!allowRequest(token)) return response.status(429).json({ error: "Too many semantic evaluations. Retry shortly." });
+      const stored = await getPolicyByIdForUser(claims.policyId, claims.userId);
+      if (!stored) return response.status(404).json({ error: "Policy not found." });
+      policy = { sourcePreference: stored.sourcePreference, rulesJson: stored.rulesJson };
+    }
     const submitted: unknown[] = Array.isArray(request.body?.results) ? request.body.results.slice(0, 12) : [];
     const results = submitted.map(item => {
       const candidate = item && typeof item === "object" ? item as Record<string, unknown> : {};
@@ -121,8 +164,6 @@ export function registerExtensionSemanticApi(app: Express) {
     }).filter(item => item.id && item.text.length >= 3);
     if (!results.length) return response.status(400).json({ error: "At least one result text is required." });
     try {
-      const policy = await getPolicyByIdForUser(claims.policyId, claims.userId);
-      if (!policy) return response.status(404).json({ error: "Policy not found." });
       const result = await evaluateSemantically({
         sourcePreference: policy.sourcePreference,
         rules: policy.rulesJson,
@@ -137,20 +178,24 @@ export function registerExtensionSemanticApi(app: Express) {
 
   app.post("/api/extension/visual-localize", async (request: Request, response: Response) => {
     if (!allowCors(request, response)) return response.status(403).json({ error: "Extension origin required." });
-    const token = request.header("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-    const claims = verifyExtensionAccessToken(token);
-    if (!claims) return response.status(401).json({ error: "Invalid extension access token." });
-    const user = await getUserById(claims.userId);
-    if (!user) return response.status(401).json({ error: "Subscription account was not found." });
-    const subscription = await getSubscriptionSummaryForUser(user);
-    if (!subscription.hasAccess) return response.status(402).json({ error: "Trial or subscription access has ended." });
-    if (!allowRequest(token)) return response.status(429).json({ error: "Too many visual checks. Retry shortly." });
+    let policy: ResolvedPolicy | null = devAuthBypassEnabled() ? devPolicy() : null;
+    if (!policy) {
+      const token = request.header("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+      const claims = verifyExtensionAccessToken(token);
+      if (!claims) return response.status(401).json({ error: "Invalid extension access token." });
+      const user = await getUserById(claims.userId);
+      if (!user) return response.status(401).json({ error: "Subscription account was not found." });
+      const subscription = await getSubscriptionSummaryForUser(user);
+      if (!subscription.hasAccess) return response.status(402).json({ error: "Trial or subscription access has ended." });
+      if (!allowRequest(token)) return response.status(429).json({ error: "Too many visual checks. Retry shortly." });
+      const stored = await getPolicyByIdForUser(claims.policyId, claims.userId);
+      if (!stored) return response.status(404).json({ error: "Policy not found." });
+      policy = { sourcePreference: stored.sourcePreference, rulesJson: stored.rulesJson };
+    }
     const submitted: unknown[] = Array.isArray(request.body?.images) ? request.body.images.slice(0, 6) : [];
     const images = normalizeVisualRequestImages(submitted);
     if (!images.length) return response.status(400).json({ error: "At least one HTTPS image URL or inline image is required." });
     try {
-      const policy = await getPolicyByIdForUser(claims.policyId, claims.userId);
-      if (!policy) return response.status(404).json({ error: "Policy not found." });
       return response.json(await localizeVisualMatches({ sourcePreference: policy.sourcePreference, rules: policy.rulesJson, images }));
     } catch (error) {
       console.error("[Extension visual localization]", error);

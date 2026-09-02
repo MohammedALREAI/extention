@@ -24,7 +24,7 @@ const user = {
   openId: "subscription-test-user",
   name: "Subscription Tester",
   email: "subscription@example.com",
-  loginMethod: "manus",
+  loginMethod: "oauth",
   role: "user" as const,
   createdAt: new Date("2026-08-20T00:00:00.000Z"),
   updatedAt: new Date(),

@@ -8,6 +8,7 @@
       const endpoint = config?.visualEndpoint || config?.endpoint?.replace("/semantic-evaluate", "/visual-localize");
       if (!endpoint || !config?.token || Number(config.expiresAt) <= Date.now()) return { state: "unavailable", reason: "policy_access", detections: new Map(), unavailableKeys: new Set(images.map(image => image.key)) };
       const now = Date.now();
+      let failureReason = null;
       images.forEach(image => { if (unavailable.get(image.key)?.expiresAt <= now) unavailable.delete(image.key); });
       const missing = images.filter(image => (!cache.get(image.key) || cache.get(image.key).expiresAt <= now) && !unavailable.has(image.key));
       onMetric("visualCacheHits", images.length - missing.length);
@@ -18,9 +19,13 @@
         return true;
       });
       onMetric("visualInflightJoins", missing.length - unclaimed.length);
-      const precisionBatches = unclaimed.filter(image => image.precision).map(image => [image]);
+      // Precision images are batched in pairs rather than sent one at a time: a whole
+      // page of single-image calls was slow enough to time out and burned the request
+      // budget. The prompt already requires each image to be judged on its own.
+      const chunk = (list, size) => Array.from({ length: Math.ceil(list.length / size) }, (_, index) => list.slice(index * size, index * size + size));
+      const precision = unclaimed.filter(image => image.precision);
       const standard = unclaimed.filter(image => !image.precision);
-      const batches = [...precisionBatches, ...Array.from({ length: Math.ceil(standard.length / 3) }, (_, index) => standard.slice(index * 3, index * 3 + 3))];
+      const batches = [...chunk(precision, 2), ...chunk(standard, 3)];
       const deferred = new Map();
       unclaimed.forEach(image => {
         let settle;
@@ -28,14 +33,36 @@
         deferred.set(image.key, settle);
         inflight.set(image.key, request);
       });
-      async function requestBatch(batch) {
+      // A refused request is terminal — retrying only burns the rate limit — while a
+      // timeout or a server fault is worth exactly one more try.
+      function failureFor(status) {
+        if (status === 401) return { reason: "policy_access", retryable: false };
+        if (status === 402) return { reason: "access_ended", retryable: false };
+        if (status === 429) return { reason: "rate_limited", retryable: false };
+        if (status === 400) return { reason: "service_unavailable", retryable: false };
+        return { reason: "service_unavailable", retryable: true };
+      }
+      async function attemptBatch(batch) {
         try {
-          const response = await globalThis.CFRequestControl.fetchWithDeadline(fetchImpl, endpoint, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${config.token}` }, body: JSON.stringify({ images: batch.map(image => ({ id: image.key, url: image.url, ...(image.url ? {} : { dataUrl: image.dataUrl }), width: image.width, height: image.height })) }) }, globalThis.CFRequestControl.VISUAL_TIMEOUT_MS);
-          if (!response.ok) throw new Error("Visual localizer unavailable.");
+          const response = await globalThis.CFRequestControl.fetchWithDeadline(fetchImpl, endpoint, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${config.token}` }, body: JSON.stringify({ images: batch.map(image => ({ id: image.key, url: image.url, ...(image.url ? {} : { dataUrl: image.dataUrl }), ...(image.context ? { context: image.context } : {}), width: image.width, height: image.height })) }) }, globalThis.CFRequestControl.VISUAL_TIMEOUT_MS);
+          if (!response.ok) return { ok: false, ...failureFor(response.status) };
           const detections = await response.json();
-          if (!Array.isArray(detections)) throw new Error("Visual localizer returned an unexpected payload.");
+          if (!Array.isArray(detections)) return { ok: false, reason: "service_unavailable", retryable: false };
+          return { ok: true, detections };
+        } catch {
+          // A deadline abort or a dropped connection: worth one retry.
+          return { ok: false, reason: "service_unavailable", retryable: true };
+        }
+      }
+      async function requestBatch(batch) {
+        let outcome = await attemptBatch(batch);
+        if (!outcome.ok && outcome.retryable) {
+          onMetric("visualRetries", batch.length);
+          outcome = await attemptBatch(batch);
+        }
+        if (outcome.ok) {
           const answered = new Set();
-          detections.forEach(detection => {
+          outcome.detections.forEach(detection => {
             const id = String(detection?.id ?? "");
             answered.add(id);
             if (detection?.status === "unavailable") unavailable.set(id, { expiresAt: Date.now() + Math.min(ttlMs, 10_000) });
@@ -44,14 +71,14 @@
           // An image the response never answered for is an incomplete check, so it
           // must stay unavailable rather than being cached as a confident no-match.
           batch.filter(image => !answered.has(image.key)).forEach(image => unavailable.set(image.key, { expiresAt: Date.now() + Math.min(ttlMs, 10_000) }));
-        } catch {
+        } else {
+          failureReason = failureReason || outcome.reason;
           batch.forEach(image => unavailable.set(image.key, { expiresAt: Date.now() + Math.min(ttlMs, 10_000) }));
-        } finally {
-          batch.forEach(image => { deferred.get(image.key)?.(); inflight.delete(image.key); });
         }
+        batch.forEach(image => { deferred.get(image.key)?.(); inflight.delete(image.key); });
       }
       const queue = [...batches];
-      const workers = Array.from({ length: Math.min(2, queue.length) }, async () => {
+      const workers = Array.from({ length: Math.min(3, queue.length) }, async () => {
         while (queue.length) {
           const batch = queue.shift();
           if (batch) await requestBatch(batch);
@@ -60,7 +87,7 @@
       if (workers.length) await Promise.all(workers);
       const unavailableKeys = new Set(images.filter(image => unavailable.has(image.key)).map(image => image.key));
       const state = unavailableKeys.size === 0 ? "ready" : unavailableKeys.size === images.length ? "unavailable" : "partial";
-      return { state, reason: unavailableKeys.size ? "service_unavailable" : null, detections: new Map(images.filter(image => !unavailableKeys.has(image.key)).map(image => [image.key, cache.get(image.key)?.value || []])), unavailableKeys };
+      return { state, reason: unavailableKeys.size ? (failureReason || "service_unavailable") : null, detections: new Map(images.filter(image => !unavailableKeys.has(image.key)).map(image => [image.key, cache.get(image.key)?.value || []])), unavailableKeys };
     }
     return { locate };
   }

@@ -9,14 +9,48 @@
    box, so on a right-to-left page a masked word at the edge of a Latin phrase is
    reordered to the opposite end of the line. Inline keeps the masked word's own
    direction and leaves the surrounding text in its original order. */
-.cf-inline-mask { display: inline; padding: 0 .1em; border-radius: 3px; color: transparent !important; background: repeating-linear-gradient(135deg, #20263a 0 4px, #343e5f 4px 8px); box-decoration-break: clone; -webkit-box-decoration-break: clone; text-shadow: none !important; filter: blur(1.5px); cursor: pointer; user-select: none; }
+.cf-inline-mask { display: inline; padding: 0 .12em; border-radius: 3px; color: transparent !important; background: rgba(125,135,175,.16); text-shadow: 0 0 7px rgba(22,26,42,.82), 0 0 13px rgba(22,26,42,.5) !important; box-decoration-break: clone; -webkit-box-decoration-break: clone; cursor: pointer; user-select: none; }.cf-inline-mask:hover { background: rgba(125,135,175,.26); }
 .cf-decision-explanation { position: relative; z-index: 2147483644; display: inline-block; max-width: 100%; margin: 7px 0 0; padding: 5px 8px; border: 1px solid rgba(129,112,255,.55); border-radius: 7px; color: #e8e5ff; background: rgba(23,20,46,.94); font: 600 11px/1.35 Arial,sans-serif; }.cf-decision-explanation summary { cursor: pointer; color: #c8c1ff; user-select: none; }.cf-decision-explanation-copy { max-width: min(520px, 82vw); margin-top: 5px; color: #f4f3ff; }.cf-decision-explanation:not([open]) .cf-decision-explanation-copy { display: none; }
-.cf-image-mask-layer { position: absolute; inset: 0; z-index: 2147483645; pointer-events: none; overflow: hidden; }/* The overlay reads as a soft patch over the object rather than a drawn rectangle.
+/* `isolation` keeps two overlapping masks from compounding into a darker seam where
+   their feathered edges cross. */
+.cf-image-mask-layer { position: absolute; inset: 0; z-index: 2147483645; pointer-events: none; overflow: hidden; isolation: isolate; }
+/* The overlay reads as a soft patch over the object rather than a drawn rectangle.
    Two crossed gradients fade every edge — corners fade first, where an object is
    least likely to reach — and the element is laid out past the detected box, so the
    fully opaque core still covers the whole detection. `border-radius` only matters
    where mask compositing is unavailable: coverage degrades to a rounded box, never
-   to a gap. */
-.cf-object-mask { position: absolute; display: block; margin: 0; padding: 0; border: 0; border-radius: 20%; background: rgba(19,23,41,.34) !important; -webkit-backdrop-filter: blur(24px) saturate(.14) contrast(.88); backdrop-filter: blur(24px) saturate(.14) contrast(.88); -webkit-mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 8%, #000 92%, transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 8%, #000 92%, transparent 100%); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-composite: source-in; mask-composite: intersect; box-shadow: none; pointer-events: auto; cursor: pointer; transition: background .12s ease; }.cf-object-mask:hover,.cf-object-mask:focus-visible { outline: none; background: rgba(37,44,74,.5) !important; }/* Both whole-image states are a plain blur with no text or striping over the result.
+   to a gap. The four fade stops are variables so a box sitting on the image boundary
+   can drop the feather on that side alone, corner combinations included. */
+.cf-object-mask { --cf-blur: 24px; --cf-fade-start: 8%; --cf-fade-end: 92%; --cf-fade-left: var(--cf-fade-start); --cf-fade-right: var(--cf-fade-end); --cf-fade-top: var(--cf-fade-start); --cf-fade-bottom: var(--cf-fade-end); position: absolute; display: block; margin: 0; padding: 0; border: 0; border-radius: 20%; background: rgba(19,23,41,.34) !important; -webkit-backdrop-filter: blur(var(--cf-blur)) saturate(.14) contrast(.88); backdrop-filter: blur(var(--cf-blur)) saturate(.14) contrast(.88); -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--cf-fade-left), #000 var(--cf-fade-right), transparent 100%), linear-gradient(to bottom, transparent 0, #000 var(--cf-fade-top), #000 var(--cf-fade-bottom), transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 var(--cf-fade-left), #000 var(--cf-fade-right), transparent 100%), linear-gradient(to bottom, transparent 0, #000 var(--cf-fade-top), #000 var(--cf-fade-bottom), transparent 100%); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-composite: source-in; mask-composite: intersect; box-shadow: none; pointer-events: auto; cursor: pointer; transition: background .12s ease; }.cf-object-mask:hover,.cf-object-mask:focus-visible { outline: none; background: rgba(37,44,74,.5) !important; }
+/* Blur radius scales with the region: a small patch smears with a huge radius, and a
+   large one needs more than the default to stay unreadable. */
+.cf-object-mask[data-cf-size="tiny"] { --cf-blur: 10px; }
+.cf-object-mask[data-cf-size="small"] { --cf-blur: 16px; }
+.cf-object-mask[data-cf-size="large"] { --cf-blur: 34px; }
+/* A detection clipped by the image boundary has no background to fade into on that
+   side, so the feather is dropped there and the clipped object stays covered. */
+.cf-object-mask[data-cf-edge-left] { --cf-fade-left: 0%; }
+.cf-object-mask[data-cf-edge-right] { --cf-fade-right: 100%; }
+.cf-object-mask[data-cf-edge-top] { --cf-fade-top: 0%; }
+.cf-object-mask[data-cf-edge-bottom] { --cf-fade-bottom: 100%; }
+/* Explicit user choice overrides the size-adaptive default. */
+.cf-object-mask[data-cf-intensity="light"] { --cf-blur: 12px; }
+.cf-object-mask[data-cf-intensity="medium"] { --cf-blur: 22px; }
+.cf-object-mask[data-cf-intensity="strong"] { --cf-blur: 40px; }/* Both whole-image states are a plain blur with no text or striping over the result.
    What each one means stays in the tooltip and the accessible label. */
 .cf-image-pending-cover { position:absolute; inset:0; margin:0; padding:0; border:0; border-radius:6px; background:rgba(19,23,41,.26) !important; -webkit-backdrop-filter:blur(18px) saturate(.2); backdrop-filter:blur(18px) saturate(.2); }.cf-image-review-cover { position:absolute; inset:0; display:block; margin:0; padding:0; border:0; border-radius:6px; font:inherit; color:transparent; background:rgba(19,23,41,.34) !important; -webkit-backdrop-filter:blur(26px) saturate(.12) contrast(.88); backdrop-filter:blur(26px) saturate(.12) contrast(.88); pointer-events:auto; cursor:pointer; }.cf-image-review-cover:hover,.cf-image-review-cover:focus-visible { outline:none; background:rgba(37,44,74,.44) !important; }.cf-image-notice-layer { overflow:visible; }.cf-image-review-notice { position:absolute; right:4px; bottom:4px; max-width:calc(100% - 8px); padding:4px 6px; border:1px solid rgba(248,191,77,.72); border-radius:5px; color:#fff0c6; background:rgba(53,39,16,.88); font:700 9px/1.2 Arial,sans-serif; pointer-events:auto; cursor:pointer; }
+/* Cross-browser fallback. Every cover here hides content by blurring what is behind
+   it, which needs `backdrop-filter` — supported in Chrome/Edge 76+, Safari 9+ (with
+   the -webkit- prefix, kept above) and Firefox 103+. Where it is unavailable, or
+   disabled by a Firefox user through layout.css.backdrop-filter.enabled, a
+   translucent tint would leave the object readable. The fallback therefore paints a
+   near-solid patch instead: less elegant, but it never reveals what it is meant to
+   cover. Firefox needs no separate `filter` rule — that would blur the mask element
+   itself rather than the image behind it, which is not the same effect.
+   CSS masks (`mask-image` + `mask-composite`) degrade independently: without them
+   the mask stays a rounded rectangle, which still covers the detection. */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .cf-object-mask { background: rgba(19,23,41,.94) !important; }
+  .cf-image-pending-cover { background: rgba(19,23,41,.93) !important; }
+  .cf-image-review-cover { background: rgba(19,23,41,.96) !important; }
+}

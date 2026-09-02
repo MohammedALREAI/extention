@@ -10,9 +10,27 @@ export type ModelRoute = {
 
 export const MODEL_ROUTES: Record<ModelRouteName, ModelRoute> = {
   semantic: { preferredPrefixes: ["claude-haiku-4-5", "gemini-3-flash-preview", "gpt-5-mini"], maxAttempts: 2, timeoutMs: 5_000 },
-  visual: { preferredPrefixes: ["gemini-3.1-pro-preview", "gemini-3-flash-preview", "claude-sonnet-4-6"], maxAttempts: 2, timeoutMs: 12_000 },
+  // Two attempts at 8s must both fit inside the extension's own deadline
+  // (CFRequestControl.VISUAL_TIMEOUT_MS). At 12s each the client aborted before the
+  // fallback model could ever answer, so every slow first attempt became a lost check.
+  visual: { preferredPrefixes: ["gemini-3.1-pro-preview", "gemini-3-flash-preview", "claude-sonnet-4-6"], maxAttempts: 2, timeoutMs: 8_000 },
   developer_moderation: { preferredPrefixes: ["gpt-5-mini", "claude-haiku-4-5", "gemini-3-flash-preview"], maxAttempts: 2, timeoutMs: 6_000 },
 };
+
+// Model names are provider-specific, so hardcoding them ties the whole app to one
+// gateway: point it at a different provider and every route fails with "no eligible
+// model" for a reason nothing explains. These let the names be configured per route
+// without touching code; the defaults above apply when unset.
+export const MODEL_ROUTE_ENV_VARS: Record<ModelRouteName, string> = {
+  semantic: "CF_MODEL_SEMANTIC",
+  visual: "CF_MODEL_VISUAL",
+  developer_moderation: "CF_MODEL_MODERATION",
+};
+
+export function routePrefixes(routeName: ModelRouteName, env: NodeJS.ProcessEnv = process.env): string[] {
+  const configured = String(env[MODEL_ROUTE_ENV_VARS[routeName]] ?? "").split(",").map(value => value.trim()).filter(Boolean);
+  return configured.length ? configured : [...MODEL_ROUTES[routeName].preferredPrefixes];
+}
 
 const CATALOG_TTL_MS = 5 * 60 * 1_000;
 const CIRCUIT_FAILURE_LIMIT = 2;
@@ -26,8 +44,8 @@ type Dependencies = {
 
 type Circuit = { failures: number; openUntil: number };
 
-export function orderedModels(models: ModelInfo[], route: ModelRoute): string[] {
-  return route.preferredPrefixes
+export function orderedModels(models: ModelInfo[], prefixes: readonly string[]): string[] {
+  return prefixes
     .map(prefix => models.find(model => model.id.startsWith(prefix))?.id)
     .filter((model): model is string => Boolean(model));
 }
@@ -41,12 +59,16 @@ export function createModelRouter(dependencies: Partial<Dependencies> = {}) {
   const circuits = new Map<string, Circuit>();
   let catalog: { models: ModelInfo[]; expiresAt: number } | null = null;
 
-  async function modelsFor(route: ModelRoute) {
+  async function catalogModels() {
     if (!catalog || catalog.expiresAt <= deps.now()) {
       const response = await deps.listModels();
       catalog = { models: response.data, expiresAt: deps.now() + CATALOG_TTL_MS };
     }
-    return orderedModels(catalog.models, route);
+    return catalog.models;
+  }
+
+  async function modelsFor(routeName: ModelRouteName) {
+    return orderedModels(await catalogModels(), routePrefixes(routeName));
   }
 
   function isOpen(model: string) {
@@ -65,14 +87,26 @@ export function createModelRouter(dependencies: Partial<Dependencies> = {}) {
 
   async function run<T>(routeName: ModelRouteName, request: Omit<InvokeParams, "model" | "maxRetries" | "timeoutMs">, parse: (response: InvokeResult) => T): Promise<{ value: T; model: string; attempts: number }> {
     const route = MODEL_ROUTES[routeName];
-    let candidates: string[];
+    const prefixes = routePrefixes(routeName);
+    let models: ModelInfo[];
     try {
-      candidates = await modelsFor(route);
+      models = await catalogModels();
     } catch {
-      throw new Error("No model catalog is currently available.");
+      // The most common cause by far is unset or wrong gateway configuration, so the
+      // message names what to check instead of leaving a dead end.
+      throw new Error("No model catalog is currently available. Check BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY.");
+    }
+    const candidates = orderedModels(models, prefixes);
+    if (!candidates.length) {
+      // Distinct from a cooldown: the provider simply has nothing by these names.
+      const available = models.slice(0, 10).map(model => model.id).join(", ") || "none";
+      throw new Error(
+        `No model matches route "${routeName}". Looked for ids starting with: ${prefixes.join(", ")}. ` +
+        `Set ${MODEL_ROUTE_ENV_VARS[routeName]} to names your provider offers. Available: ${available}`,
+      );
     }
     const eligible = candidates.filter(model => !isOpen(model)).slice(0, route.maxAttempts);
-    if (!eligible.length) throw new Error("No eligible model is currently available.");
+    if (!eligible.length) throw new Error(`Every model for route "${routeName}" is in cooldown after repeated failures.`);
     let lastError: unknown;
     for (let index = 0; index < eligible.length; index += 1) {
       const model = eligible[index];

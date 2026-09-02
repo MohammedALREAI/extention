@@ -1,6 +1,8 @@
 (function () {
   const SEMANTIC_TIMEOUT_MS = 5_000;
-  const VISUAL_TIMEOUT_MS = 12_000;
+  // Must outlive the server's bounded model route (2 attempts × 8s) or a fallback
+  // attempt can never reach the extension.
+  const VISUAL_TIMEOUT_MS = 20_000;
   const MIN_SEMANTIC_TEXT_LENGTH = 18;
 
   function networkAvailable(navigatorRef = globalThis.navigator) {

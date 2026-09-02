@@ -20,7 +20,13 @@ if (manifest.manifest_version !== 3) throw new Error("Extension must use Manifes
 assert(typeof manifest.name === "string" && manifest.name.length > 0 && manifest.name.length <= 45, "Manifest name must be present and no longer than 45 characters.");
 assert(/^\d{1,4}\.\d{1,4}\.\d{1,4}(\.\d{1,4})?$/.test(manifest.version), "Manifest version must follow Chrome's numeric version format.");
 assert(typeof manifest.description === "string" && manifest.description.length >= 20 && manifest.description.length <= 132, "Manifest description must be 20–132 characters.");
-assert(!(manifest.host_permissions || []).some(pattern => pattern.startsWith("http://")), "Production manifest must not contain insecure HTTP host permissions.");
+// Loopback over http is how the extension is tested against a local server; any
+// other insecure host would ship plaintext traffic to real users.
+const LOOPBACK_PERMISSIONS = ["http://localhost/*", "http://127.0.0.1/*"];
+assert(
+  !(manifest.host_permissions || []).some(pattern => pattern.startsWith("http://") && !LOOPBACK_PERMISSIONS.includes(pattern)),
+  "Production manifest must not contain insecure HTTP host permissions beyond loopback.",
+);
 assert(JSON.stringify(manifest.icons) === JSON.stringify(expectedIcons), "Manifest must declare the four expected product icon sizes.");
 assert(JSON.stringify(manifest.action?.default_icon) === JSON.stringify(expectedIcons), "Action must use the same icon family.");
 if (!Array.isArray(manifest.content_scripts) || manifest.content_scripts.length !== 1) throw new Error("Expected one content-script entry.");

@@ -19,6 +19,7 @@ function render(snapshot) {
   $("#scopeText").checked = policy.scope.text;
   if ($("#scopeImages")) $("#scopeImages").checked = policy.scope.images !== false;
   $("#imageProtectionMode").value = policy.imageProtectionMode;
+  if ($("#blurIntensity")) $("#blurIntensity").value = policy.blurIntensity;
   list.innerHTML = "";
   policy.rules.forEach(addRule);
   if (!policy.rules.length) addRule();
@@ -52,6 +53,7 @@ $("#save").addEventListener("click", async () => {
     sourcePreference: $("#preference").value.trim(),
     scope: { text: $("#scopeText").checked, images: $("#scopeImages") ? $("#scopeImages").checked : true },
     imageProtectionMode: $("#imageProtectionMode").value,
+    blurIntensity: $("#blurIntensity") ? $("#blurIntensity").value : policy.blurIntensity,
     rules,
   });
   render(snapshot);

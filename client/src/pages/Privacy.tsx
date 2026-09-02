@@ -11,7 +11,7 @@ export const privacyPolicySections = [
   {
     icon: Globe2,
     title: "When data leaves your browser",
-    body: "Exact local matches are handled in the browser. When you import an active policy snapshot, limited batches of visible result text or result images may be sent to the Content Firewall semantic or vision endpoint for contextual and cross-language decisions. An image is sent as its HTTPS URL where the page provides one; where the search page embeds the thumbnail inline, the extension sends that reduced-size thumbnail instead, because there is no URL to send. Images are used only to answer that one check and are not retained. The extension does not send complete page HTML.",
+    body: "Exact local matches are handled in the browser. When you import an active policy snapshot, limited batches of visible result text or result images may be sent to the Content Firewall semantic or vision endpoint for contextual and cross-language decisions. An image is sent as its HTTPS URL where the page provides one; where the search page embeds the thumbnail inline, the extension sends that reduced-size thumbnail instead, because there is no URL to send. A short piece of the text shown beside that image — its title, caption, or alt text, capped at 200 characters — is sent with it so the check knows what to look for; it never decides the outcome on its own. Images are used only to answer that one check and are not retained. The extension does not send complete page HTML.",
   },
   {
     icon: Database,
@@ -26,7 +26,7 @@ export const privacyPolicySections = [
   {
     icon: RefreshCcw,
     title: "Access tokens and safety behavior",
-    body: "Imported snapshots contain a signed, time-limited access token used only for the semantic and vision endpoints. A confident image no-match stays visible. When visual access expires or a check cannot be completed, the extension protects only that affected image with a Review cover. Import a freshly copied policy to refresh access.",
+    body: "Imported snapshots contain a signed, time-limited access token used only for the semantic and vision endpoints. A confident image no-match stays visible. When visual access expires or a check cannot be completed, that image also stays visible — only located objects are ever covered — and the toolbar popup reports how many checks could not complete. Import a freshly copied policy to refresh access.",
   },
 ];
 

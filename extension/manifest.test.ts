@@ -20,7 +20,10 @@ describe("production extension manifest", () => {
     expect(manifest.description.length).toBeLessThanOrEqual(132);
     expect(manifest.permissions).toEqual(["storage", "tabs"]);
     expect(manifest.content_scripts[0].run_at).toBe("document_start");
-    expect(manifest.host_permissions).not.toContain("http://localhost/*");
+    // Loopback is how the extension is pointed at a local server during development.
+    // Any other insecure host would send real users' traffic in plaintext.
+    const insecure = (manifest.host_permissions ?? []).filter((pattern: string) => pattern.startsWith("http://"));
+    expect(insecure.every((pattern: string) => ["http://localhost/*", "http://127.0.0.1/*"].includes(pattern))).toBe(true);
     expect(manifest.icons).toEqual(expectedIcons);
     expect(manifest.action.default_icon).toEqual(expectedIcons);
   });

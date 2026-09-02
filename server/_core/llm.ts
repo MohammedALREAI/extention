@@ -216,10 +216,16 @@ const normalizeToolChoice = (
   return toolChoice;
 };
 
-const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
+// The gateway host is configuration, not source. BUILT_IN_FORGE_API_URL must be set
+// in the deployment environment; without it every model call fails loudly here rather
+// than silently reaching a host nobody chose.
+const resolveBaseUrl = () => {
+  const configured = ENV.forgeApiUrl?.trim();
+  if (!configured) throw new Error("BUILT_IN_FORGE_API_URL is not configured");
+  return configured.replace(/\/$/, "");
+};
+
+const resolveApiUrl = () => `${resolveBaseUrl()}/v1/chat/completions`;
 
 const assertApiKey = () => {
   if (!ENV.forgeApiKey) {
@@ -453,9 +459,7 @@ export type ModelsResponse = {
 export async function listLLMModels(): Promise<ModelsResponse> {
   assertApiKey();
 
-  const url = ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/models`
-    : "https://forge.manus.im/v1/models";
+  const url = `${resolveBaseUrl()}/v1/models`;
 
   const response = await fetchWithBackoff(url, {
     headers: { authorization: `Bearer ${ENV.forgeApiKey}` },

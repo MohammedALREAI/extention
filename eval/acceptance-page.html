@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Content Firewall — object-level acceptance page</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body { margin: 0; font: 15px/1.5 system-ui, sans-serif; }
+      header, footer { padding: 18px 24px; background: #1d1a3a; color: #f4f3ff; }
+      main { max-width: 1080px; margin: 0 auto; padding: 24px; }
+      .note { padding: 12px 14px; border: 1px solid #b9b2ff; border-radius: 8px; background: #f3f1ff; color: #241f52; }
+      .grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); margin-top: 22px; }
+      figure { margin: 0; padding: 12px; border: 1px solid #d8d5ea; border-radius: 10px; }
+      figure img { display: block; width: 100%; height: auto; border-radius: 6px; background: #eceaf6; }
+      figcaption { margin-top: 8px; font-size: 13px; }
+      .expect { display: block; margin-top: 4px; font-size: 12px; color: #6b6690; }
+      aside { margin-top: 28px; padding: 16px; border-left: 4px solid #8274fb; background: #f7f6ff; }
+    </style>
+  </head>
+  <body>
+    <!-- Banner: image 7 must be protected here, outside the main region. -->
+    <header>
+      <h1>Object-level acceptance page</h1>
+      <img id="image-7" src="images/07-dog-banner.jpg" alt="Site banner" width="240" height="120" />
+    </header>
+
+    <main>
+      <p class="note">
+        Block <strong>dog</strong> in the extension, then reload. Only the dog regions may be
+        covered. Images 2, 4, 6 and 10 must stay completely untouched — image 6 is the one that
+        proves a title alone never triggers a blur.
+      </p>
+
+      <div class="grid">
+        <figure>
+          <img id="image-1" src="images/01-dog-and-cat.jpg" alt="A dog and a cat" width="400" height="300" />
+          <figcaption>1. Dog + cat<span class="expect">Dog region covered, cat visible</span></figcaption>
+        </figure>
+        <figure>
+          <img id="image-2" src="images/02-cat-only.jpg" alt="A cat" width="400" height="300" />
+          <figcaption>2. Cat only<span class="expect">Untouched</span></figcaption>
+        </figure>
+        <figure>
+          <img id="image-3" src="images/03-dog-and-person.jpg" alt="Someone walking a dog" width="400" height="300" />
+          <figcaption>3. Dog + person<span class="expect">Dog region only</span></figcaption>
+        </figure>
+        <figure>
+          <img id="image-4" src="images/04-car-and-person.jpg" alt="A person beside a car" width="400" height="300" />
+          <figcaption>4. Car + person<span class="expect">Untouched</span></figcaption>
+        </figure>
+        <figure>
+          <img id="image-5" src="images/05-small-background-dog.jpg" alt="A park scene" width="400" height="300" />
+          <figcaption>5. Small dog in the background<span class="expect">Background dog covered</span></figcaption>
+        </figure>
+        <figure>
+          <!-- The alt text and caption both claim a dog. The image is a cat. Nothing may
+               be covered: a caption is a hint for the detector, never a trigger. -->
+          <img id="image-6" src="images/06-cat-titled-dog.jpg" alt="Dog" title="Dog" width="400" height="300" />
+          <figcaption>6. Dog<span class="expect">Untouched — the picture is a cat</span></figcaption>
+        </figure>
+        <figure>
+          <img id="image-9" src="images/09-multiple-dogs.jpg" alt="Several dogs" width="400" height="300" />
+          <figcaption>9. Multiple dogs<span class="expect">Every detected dog covered separately</span></figcaption>
+        </figure>
+        <figure>
+          <img id="image-10" src="images/10-no-blocked-objects.jpg" alt="A landscape" width="400" height="300" />
+          <figcaption>10. Nothing blocked<span class="expect">Untouched</span></figcaption>
+        </figure>
+      </div>
+
+      <!-- Image 8 is inserted after load, so it exercises the mutation path rather than
+           the first scan. -->
+      <aside>
+        <h2>8. Loaded after the page</h2>
+        <div id="dynamic-slot">Loading…</div>
+      </aside>
+    </main>
+
+    <!-- Footer: still page content, still protected. -->
+    <footer>
+      <p>Footer</p>
+      <img id="image-footer" src="images/11-dog-footer.jpg" alt="Footer image" width="200" height="110" />
+    </footer>
+
+    <script>
+      window.setTimeout(() => {
+        const slot = document.querySelector("#dynamic-slot");
+        const image = document.createElement("img");
+        image.id = "image-8";
+        image.src = "images/08-dog-dynamic.jpg";
+        image.alt = "Loaded after the page";
+        image.width = 400;
+        image.height = 300;
+        slot.replaceChildren(image);
+      }, 1500);
+    </script>
+  </body>
+</html>

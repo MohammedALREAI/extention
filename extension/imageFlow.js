@@ -1,13 +1,16 @@
 (() => {
-  const UNAVAILABLE_REASON = "Visual check unavailable — re-import policy and retry";
-
   function applyVisualOutcomes({ images, visual, feedbackContextFor, imageMask }) {
     const result = { matched: 0, noMatch: 0, failed: 0 };
     images.forEach(candidate => {
       const baseContext = feedbackContextFor(candidate);
       if (visual.unavailableKeys?.has(candidate.key)) {
-        imageMask.bindMissFeedback(candidate.image, { ...baseContext, visualOutcome: "visual_failure" });
-        imageMask.applyReviewCover(candidate.image, UNAVAILABLE_REASON);
+        // A check that could not complete no longer covers the picture — only located
+        // objects are ever masked. `applyBoxes` with nothing to draw also clears the
+        // Strict pending cover, so the image is never left stranded behind one. The
+        // count is returned so the popup can report what went unchecked.
+        const context = { ...baseContext, visualOutcome: "visual_failure" };
+        imageMask.bindMissFeedback(candidate.image, context);
+        imageMask.applyBoxes(candidate.image, [], context);
         result.failed += 1;
         return;
       }
@@ -22,5 +25,5 @@
     });
     return result;
   }
-  globalThis.CFImageFlow = Object.freeze({ applyVisualOutcomes, UNAVAILABLE_REASON });
+  globalThis.CFImageFlow = Object.freeze({ applyVisualOutcomes });
 })();

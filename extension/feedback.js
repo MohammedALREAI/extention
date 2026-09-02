@@ -3,16 +3,26 @@
   const EVENTS_KEY = "cfVisualFeedbackEvents";
   const MAX_EVENTS = 250;
 
-  function localStorageApi() { return globalThis.chrome?.storage?.local; }
+  function localStorageApi() {
+    try { return globalThis.chrome?.storage?.local; } catch { return undefined; }
+  }
+  // Storage calls from a content script whose extension has been reloaded throw
+  // "Extension context invalidated". The throw happens inside the executor, where it
+  // would become a rejected promise, so it is caught there: feedback is a
+  // convenience and resolves empty rather than surfacing in the page console.
   function get(keys) {
     const storage = localStorageApi();
     if (!storage?.get) return Promise.resolve({});
-    return new Promise(resolve => storage.get(keys, value => resolve(value || {})));
+    return new Promise(resolve => {
+      try { storage.get(keys, value => resolve(value || {})); } catch { resolve({}); }
+    });
   }
   function set(value) {
     const storage = localStorageApi();
     if (!storage?.set) return Promise.resolve();
-    return new Promise(resolve => storage.set(value, resolve));
+    return new Promise(resolve => {
+      try { storage.set(value, resolve); } catch { resolve(); }
+    });
   }
   function safeImageUrl(value) {
     try {

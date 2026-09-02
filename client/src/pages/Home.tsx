@@ -495,7 +495,7 @@ export default function Home() {
           </div>}
         </section>
       </main>
-      <footer><span>© 2026 Content Firewall</span><span>{uiLanguage === "ar" ? "قرارات قابلة للتفسير، وليست تخميناً." : "Explainable decisions, not silent guesses."}</span><a className="privacy-link" href="/manus-storage/content-firewall-chrome-extension_db504c16.zip" download>{t.downloadExtension}</a><Link className="privacy-link" href="/privacy">{uiLanguage === "ar" ? "الخصوصية" : "Privacy"}</Link></footer>
+      <footer><span>© 2026 Content Firewall</span><span>{uiLanguage === "ar" ? "قرارات قابلة للتفسير، وليست تخميناً." : "Explainable decisions, not silent guesses."}</span><a className="privacy-link" href="/storage/content-firewall-chrome-extension_db504c16.zip" download>{t.downloadExtension}</a><Link className="privacy-link" href="/privacy">{uiLanguage === "ar" ? "الخصوصية" : "Privacy"}</Link></footer>
     </div>
   );
 }

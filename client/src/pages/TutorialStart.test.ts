@@ -11,11 +11,11 @@ describe("Tutorial Start content", () => {
   });
 
   it("uses the corrected extension ZIP for the download step", () => {
-    expect(tutorialSteps.en[0].actions?.[0].href).toBe("/manus-storage/content-firewall-chrome-extension_db504c16.zip");
+    expect(tutorialSteps.en[0].actions?.[0].href).toBe("/storage/content-firewall-chrome-extension_db504c16.zip");
   });
 
   it("ships an accessible animated installation demo from permanent project storage", () => {
-    expect(tutorialInstallGif).toBe("/manus-storage/content-firewall-load-unpacked_a4ea7cf4.gif");
+    expect(tutorialInstallGif).toBe("/storage/content-firewall-load-unpacked_a4ea7cf4.gif");
   });
 
   it("uses the non-animated installation fallback when reduced motion is requested", () => {

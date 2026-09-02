@@ -1,6 +1,8 @@
 (function () {
   const ACTIONS = ["blur", "block", "warn"];
   const PRIORITY = { block: 3, blur: 2, warn: 1 };
+  // "auto" lets the mask pick its blur strength from the detected region's size.
+  const BLUR_INTENSITIES = ["light", "medium", "strong"];
 
   function defaultPolicy() {
     return {
@@ -11,6 +13,7 @@
       sourcePreference: "",
       scope: { text: true, images: true },
       imageProtectionMode: "strict",
+      blurIntensity: "auto",
       rules: [],
     };
   }
@@ -31,6 +34,7 @@
   function sanitizePolicy(candidate) {
     const base = defaultPolicy();
     const source = candidate && typeof candidate === "object" ? candidate : {};
+    const seenTerms = new Set();
     const rules = Array.isArray(source.rules)
       ? source.rules
           .map(rule => ({
@@ -38,6 +42,13 @@
             action: ACTIONS.includes(rule && rule.action) ? rule.action : "blur",
           }))
           .filter(rule => rule.term.length >= 2)
+          // The same term twice would be sent to the model twice and counted twice.
+          .filter(rule => {
+            const key = rule.term.toLocaleLowerCase();
+            if (seenTerms.has(key)) return false;
+            seenTerms.add(key);
+            return true;
+          })
           .slice(0, 20)
       : [];
 
@@ -51,6 +62,7 @@
       sourcePreference: String(source.sourcePreference || ""),
       enabled: source.enabled !== false,
       imageProtectionMode: source.imageProtectionMode === "fast" ? "fast" : "strict",
+      blurIntensity: BLUR_INTENSITIES.includes(source.blurIntensity) ? source.blurIntensity : "auto",
     };
   }
 
