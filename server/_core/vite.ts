@@ -13,8 +13,18 @@ export async function setupVite(app: Express, server: Server) {
     allowedHosts: true as const,
   };
 
+// vite.config.ts may export a config object OR a function ({ mode }) => config (the
+// function form is required when the config calls loadEnv per mode). Spreading a
+// function silently yields {}, losing root/plugins/aliases and breaking every
+// /src/* module request, so resolve both shapes before handing the config to vite.
+const viteConfigSource: any = viteConfig;
+const resolvedConfig =
+  typeof viteConfigSource === "function"
+    ? await viteConfigSource({ mode: "development", command: "serve" })
+    : viteConfigSource;
+
   const vite = await createViteServer({
-    ...viteConfig,
+    ...resolvedConfig,
     configFile: false,
     server: serverOptions,
     appType: "custom",

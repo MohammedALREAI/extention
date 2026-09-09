@@ -12,6 +12,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerExtensionSemanticApi } from "../extensionSemanticApi";
 import { registerDeveloperModerationApi } from "../developerModerationApi";
+import { registerImageDetectionApi } from "../imageDetectionApi";
 
 function analyticsOrigin(endpoint = process.env.VITE_ANALYTICS_ENDPOINT) {
   try {
@@ -76,6 +77,26 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
   app.use(applySecurityHeaders);
+  // Express decodes path params before any route matches, so a stray percent sign in a
+  // URL throws a URIError from deep inside its router with no route to catch it. Any
+  // client can send one, so it is rejected here rather than logged as a crash.
+  app.use((req, res, next) => {
+    try {
+      decodeURIComponent(req.path);
+    } catch {
+      return res.status(400).json({ error: "Malformed URL." });
+    }
+    next();
+  });
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api")) {
+      const start = Date.now();
+      res.on("finish", () => {
+        console.log(`[API] ${req.method} ${req.path} -> ${res.statusCode} (${Date.now() - start}ms)`);
+      });
+    }
+    next();
+  });
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -83,6 +104,7 @@ async function startServer() {
   registerOAuthRoutes(app);
   registerExtensionSemanticApi(app);
   registerDeveloperModerationApi(app);
+  registerImageDetectionApi(app);
   // tRPC API
   app.use(
     "/api/trpc",

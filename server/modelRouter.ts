@@ -9,12 +9,16 @@ export type ModelRoute = {
 };
 
 export const MODEL_ROUTES: Record<ModelRouteName, ModelRoute> = {
-  semantic: { preferredPrefixes: ["claude-haiku-4-5", "gemini-3-flash-preview", "gpt-5-mini"], maxAttempts: 2, timeoutMs: 5_000 },
-  // Two attempts at 8s must both fit inside the extension's own deadline
-  // (CFRequestControl.VISUAL_TIMEOUT_MS). At 12s each the client aborted before the
-  // fallback model could ever answer, so every slow first attempt became a lost check.
-  visual: { preferredPrefixes: ["gemini-3.1-pro-preview", "gemini-3-flash-preview", "claude-sonnet-4-6"], maxAttempts: 2, timeoutMs: 8_000 },
-  developer_moderation: { preferredPrefixes: ["gpt-5-mini", "claude-haiku-4-5", "gemini-3-flash-preview"], maxAttempts: 2, timeoutMs: 6_000 },
+  semantic: { preferredPrefixes: ["claude-haiku-4-5", "gemini-3-flash-preview", "gpt-5-mini", "gpt-4o-mini"], maxAttempts: 2, timeoutMs: 5_000 },
+  // Three attempts at 6s must all fit inside the extension's own deadline
+  // (CFRequestControl.VISUAL_TIMEOUT_MS = 20s). Two was not enough: a gateway that
+  // routes the first two names to one unhealthy provider sank the whole route even
+  // though working models sat further down the ladder. Raise this only alongside a
+  // matching change to that deadline, or the client aborts before the last answer.
+  // The trailing names are fallbacks, not preferences: only attempts that actually run
+  // cost anything, so listing more simply widens what a broken provider falls back to.
+  visual: { preferredPrefixes: ["gemini-3.1-pro-preview", "gemini-3-flash-preview", "claude-sonnet-4-6", "gpt-4o", "gpt-5"], maxAttempts: 3, timeoutMs: 6_000 },
+  developer_moderation: { preferredPrefixes: ["gpt-5-mini", "claude-haiku-4-5", "gemini-3-flash-preview", "gpt-4o-mini"], maxAttempts: 2, timeoutMs: 6_000 },
 };
 
 // Model names are provider-specific, so hardcoding them ties the whole app to one
@@ -44,10 +48,22 @@ type Dependencies = {
 
 type Circuit = { failures: number; openUntil: number };
 
+// Some gateways namespace their catalog by vendor ("qwen/qwen2.5-vl-72b-instruct"),
+// so a plain startsWith on the family name would match nothing there. The name after
+// the last slash is checked too, which keeps a prefix meaningful on both shapes.
+function matchesPrefix(id: string, prefix: string) {
+  return id.startsWith(prefix) || id.slice(id.lastIndexOf("/") + 1).startsWith(prefix);
+}
+
 export function orderedModels(models: ModelInfo[], prefixes: readonly string[]): string[] {
-  return prefixes
-    .map(prefix => models.find(model => model.id.startsWith(prefix))?.id)
-    .filter((model): model is string => Boolean(model));
+  const ordered: string[] = [];
+  prefixes.forEach(prefix => {
+    const match = models.find(model => matchesPrefix(model.id, prefix))?.id;
+    // Two prefixes can resolve to the same model; the route needs two distinct
+    // attempts, not the same one retried.
+    if (match && !ordered.includes(match)) ordered.push(match);
+  });
+  return ordered;
 }
 
 export function createModelRouter(dependencies: Partial<Dependencies> = {}) {

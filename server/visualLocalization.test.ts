@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { containmentRatio, describeImageForPrompt, isEdgeBox, parseVisualReply } from "./visualLocalization";
+import { cleanJsonText, containmentRatio, describeImageForPrompt, isEdgeBox, parseVisualReply } from "./visualLocalization";
 
 describe("visual object localization", () => {
   it("accepts a dog box while preserving the absence of a cat box in a mixed image", () => {
@@ -146,5 +146,21 @@ describe("visual object localization", () => {
     }));
     expect(detections[0].boxes).toEqual([expect.objectContaining({ label: "cat", x: 0, confidence: 0.89 })]);
     expect(detections[1].boxes).toEqual([]);
+  });
+
+  it("parses model replies wrapped in markdown code blocks or with surrounding whitespace", () => {
+    const json = JSON.stringify({
+      detections: [{ id: "fenced-dog", boxes: [{ x: 100, y: 100, width: 300, height: 300, label: "dog", confidence: 0.9 }] }],
+    });
+    const markdownReply = `\`\`\`json\n${json}\n\`\`\``;
+    const detections = parseVisualReply(markdownReply);
+    expect(detections).toHaveLength(1);
+    expect(detections[0].id).toBe("fenced-dog");
+    expect(detections[0].boxes).toHaveLength(1);
+  });
+
+  it("cleans json text with conversational prefixes or suffixes", () => {
+    const raw = `Here is the visual localization output:\n{"detections":[{"id":"test","boxes":[]}]}\nHope this helps!`;
+    expect(cleanJsonText(raw)).toBe('{"detections":[{"id":"test","boxes":[]}]}');
   });
 });

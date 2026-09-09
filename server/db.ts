@@ -1,6 +1,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
-import { checkHistory, developerApiKeys, developerApiUsage, InsertUser, policies, subscriptions, users } from "../drizzle/schema";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+import { checkHistory, developerApiKeys, developerApiUsage, imageUploads, InsertUser, policies, subscriptions, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import type { CheckResult, FirewallRule, InputType, PolicyAction } from "./firewall";
 
@@ -10,7 +11,8 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const client = new Pool({ connectionString: process.env.DATABASE_URL! });
+      _db = drizzle(client);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -69,7 +71,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
       set: updateSet,
     });
   } catch (error) {
@@ -133,11 +136,44 @@ export async function updateSubscriptionStatusForUser(userId: number, status: "t
   await db.update(subscriptions).set({ status }).where(eq(subscriptions.userId, userId));
 }
 
-export async function createDeveloperApiKey(input: { userId: number; label: string; keyPrefix: string; secretHash: string; rateLimitPerMinute: number }) {
+// Scopes were hardcoded to text moderation, so a key could never carry a scope added
+// later — the image route would have rejected every key ever issued.
+export const DEFAULT_DEVELOPER_SCOPES = ["moderation:text", "detect:image"];
+
+export async function createDeveloperApiKey(input: { userId: number; label: string; keyPrefix: string; secretHash: string; rateLimitPerMinute: number; scopes?: string[] }) {
   const db = await getDb();
   if (!db) throw new Error("Database is unavailable.");
-  const result = await db.insert(developerApiKeys).values({ ...input, scopesJson: ["moderation:text"], status: "active" });
-  return Number(result[0].insertId);
+  const { scopes, ...values } = input;
+  const result = await db.insert(developerApiKeys).values({ ...values, scopesJson: scopes?.length ? scopes : DEFAULT_DEVELOPER_SCOPES, status: "active" }).returning({ id: developerApiKeys.id });
+  return result[0].id;
+}
+
+export async function findImageUploadByHash(sha256: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(imageUploads).where(eq(imageUploads.sha256, sha256)).limit(1);
+  return rows[0];
+}
+
+export async function recordImageUpload(input: {
+  apiKeyId: number;
+  sha256: string;
+  mimeType: string;
+  byteSize: number;
+  width?: number;
+  height?: number;
+  subject?: string;
+  labels: Array<{ label: string; confidence: number; box: { x: number; y: number; width: number; height: number } }>;
+}) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.insert(imageUploads)
+    .values({ ...input, labelsJson: input.labels })
+    // Same bytes, same row: the unique hash makes a re-upload idempotent rather than
+    // an error, and the newer detection replaces the older one.
+    .onConflictDoUpdate({ target: imageUploads.sha256, set: { subject: input.subject, labelsJson: input.labels } })
+    .returning();
+  return rows[0];
 }
 
 export async function listDeveloperApiKeysForUser(userId: number) {
@@ -149,8 +185,8 @@ export async function listDeveloperApiKeysForUser(userId: number) {
 export async function revokeDeveloperApiKey(input: { id: number; userId: number }) {
   const db = await getDb();
   if (!db) return false;
-  const result = await db.update(developerApiKeys).set({ status: "revoked" }).where(and(eq(developerApiKeys.id, input.id), eq(developerApiKeys.userId, input.userId), eq(developerApiKeys.status, "active")));
-  return result[0].affectedRows > 0;
+  const result = await db.update(developerApiKeys).set({ status: "revoked" }).where(and(eq(developerApiKeys.id, input.id), eq(developerApiKeys.userId, input.userId), eq(developerApiKeys.status, "active"))).returning({ id: developerApiKeys.id });
+  return result.length > 0;
 }
 
 export async function getActiveDeveloperApiKeyByHash(secretHash: string) {
@@ -219,8 +255,8 @@ export async function createPolicyForUser(input: {
   const result = await db.insert(policies).values({
     ...input,
     rulesJson: input.rules,
-  });
-  return result[0].insertId;
+  }).returning({ id: policies.id });
+  return result[0].id;
 }
 
 export async function updatePolicyForUser(input: {

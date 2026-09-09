@@ -77,9 +77,13 @@
   }
 
   // Re-encoding on every scan would be wasteful, so the resolved source is kept on
-  // the element and reused until its own src changes.
+  // the element and reused until its own src or srcset changes.
   function visualSource(image, documentRef = globalThis.document) {
-    const signature = `${image?.currentSrc || ""}|${image?.src || ""}|${image?.naturalWidth || 0}x${image?.naturalHeight || 0}`;
+    const srcset = image?.getAttribute?.("srcset") || "";
+    const dataSrcset = image?.getAttribute?.("data-srcset") || "";
+    const dataSrc = image?.getAttribute?.("data-src") || "";
+    const dataIurl = image?.getAttribute?.("data-iurl") || image?.closest?.("[data-iurl]")?.getAttribute?.("data-iurl") || "";
+    const signature = `${image?.currentSrc || ""}|${image?.src || ""}|${dataIurl}|${srcset}|${dataSrcset}|${dataSrc}|${image?.naturalWidth || 0}x${image?.naturalHeight || 0}`;
     if (image?.__cfVisualSource?.signature === signature) return image.__cfVisualSource.value;
     const value = computeSource(image, documentRef);
     if (image) image.__cfVisualSource = { signature, value };

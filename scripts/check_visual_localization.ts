@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { localizeVisualMatches } from "../server/visualLocalization";
 
 // The sample image is supplied by the environment so no deployment URL is baked in:

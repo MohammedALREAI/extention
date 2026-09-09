@@ -58,8 +58,20 @@ export function verifyExtensionAccessToken(token: string): ExtensionClaims | und
   }
 }
 
+// google's country TLDs need a wildcard, but it must not span multiple labels:
+// `google\.[a-z.]+` also matched `www.google.com.evil.io`, reflecting an attacker's
+// origin as Access-Control-Allow-Origin. The suffix is therefore capped at one
+// optional 2-3 letter second-level label (co.uk, com.au) plus the TLD itself.
+const SEARCH_ENGINE_ORIGIN = /^https:\/\/(.*\.)?(google\.(?:[a-z]{2,3}\.)?[a-z]{2,}|bing\.com|duckduckgo\.com|brave\.com|yahoo\.com|ecosia\.org)(:\d+)?$/i;
+const EXTENSION_ORIGIN = /^chrome-extension:\/\/[a-p]{32}$/;
+const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0.0\.1)(:\d+)?$/;
+
 export function isAllowedExtensionOrigin(origin: string | undefined) {
-  return !origin || /^chrome-extension:\/\/[a-p]{32}$/.test(origin);
+  if (!origin) return true;
+  if (EXTENSION_ORIGIN.test(origin)) return true;
+  if (LOCAL_ORIGIN.test(origin)) return true;
+  if (SEARCH_ENGINE_ORIGIN.test(origin)) return true;
+  return false;
 }
 
 function allowCors(request: Request, response: Response) {

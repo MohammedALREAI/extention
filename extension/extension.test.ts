@@ -993,3 +993,81 @@ describe("semantic Google result flow", () => {
     expect(calls).toEqual([]);
   });
 });
+
+describe("visual localization client and fixes", () => {
+  it("settles inflight promises and prunes unavailable entries after backoff expires", async () => {
+    let callCount = 0;
+    const fetchMock = async () => {
+      callCount += 1;
+      return {
+        ok: true,
+        json: async () => [
+          { id: "img-1", status: "ready", boxes: [{ x: 10, y: 10, width: 100, height: 100, label: "cat", confidence: 0.95 }] },
+        ],
+      };
+    };
+    const localizer = globalThis.CFVisual.createVisualLocalizer(fetchMock, 100);
+    const config = { visualEndpoint: "https://test.local/visual", token: "tok", expiresAt: Date.now() + 60_000 };
+    const result1 = await localizer.locate(config, [{ key: "img-1", url: "https://img.test/1.jpg", width: 200, height: 200 }]);
+    expect(result1.state).toBe("ready");
+    expect(result1.detections.get("img-1")).toHaveLength(1);
+    expect(callCount).toBe(1);
+
+    // Second call should hit cache
+    const result2 = await localizer.locate(config, [{ key: "img-1", url: "https://img.test/1.jpg", width: 200, height: 200 }]);
+    expect(result2.state).toBe("ready");
+    expect(callCount).toBe(1);
+  });
+
+  it("handles malformed non-array and non-object responses safely without crashing", async () => {
+    const fetchMock = async () => ({
+      ok: true,
+      json: async () => ({ unexpected: "shape" }), // not an array
+    });
+    const localizer = globalThis.CFVisual.createVisualLocalizer(fetchMock, 1000);
+    const config = { visualEndpoint: "https://test.local/visual", token: "tok", expiresAt: Date.now() + 60_000 };
+    const result = await localizer.locate(config, [{ key: "bad-shape", url: "https://img.test/bad.jpg", width: 100, height: 100 }]);
+    expect(result.state).toBe("unavailable");
+    expect(result.unavailableKeys.has("bad-shape")).toBe(true);
+  });
+
+  it("updates visual source signature when srcset or data-iurl changes on lazy load", () => {
+    let srcset = "";
+    let dataIurl = "";
+    const image = {
+      src: "https://thumb.example/placeholder.jpg",
+      currentSrc: "https://thumb.example/placeholder.jpg",
+      naturalWidth: 200,
+      naturalHeight: 200,
+      getAttribute: (name: string) => {
+        if (name === "srcset") return srcset;
+        if (name === "data-iurl") return dataIurl;
+        return "";
+      },
+    };
+    const source1 = globalThis.CFImageSource.visualSource(image);
+    expect(source1.url).toBe("https://thumb.example/placeholder.jpg");
+
+    // Simulate lazy load updating srcset
+    srcset = "https://thumb.example/real-1000.jpg 1000w";
+    const source2 = globalThis.CFImageSource.visualSource(image);
+    expect(source2.url).toBe("https://thumb.example/real-1000.jpg");
+
+    // Simulate Google Images setting data-iurl
+    dataIurl = "https://source.example/original.jpg";
+    const source3 = globalThis.CFImageSource.visualSource(image);
+    expect(source3.url).toBe("https://source.example/original.jpg");
+  });
+
+  it("discovers modern Google image cards via resilient selectors", () => {
+    const card = { nodeType: 1, querySelector: () => ({}) };
+    const doc = {
+      querySelectorAll: (sel: string) => {
+        if (sel === "div[role='listitem']:has(img)") return [card];
+        return [];
+      },
+    };
+    const { cards } = globalThis.CFEngines.imageCardsForDocument(doc, "https://www.google.com/search?q=cats&tbm=isch");
+    expect(cards).toContain(card);
+  });
+});

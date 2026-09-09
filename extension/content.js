@@ -73,6 +73,7 @@
     performance.record("cardsDeferred", visibleUniverse.length - allCards.length);
     const visibleCards = new Set(allCards);
     const cards = discoveredCards.filter(card => visibleCards.has(card));
+    imageCards.forEach(card => { if (!discoveredCards.includes(card) && !card.dataset.cfKey) card.dataset.cfKey = "img:only"; });
     const semanticCandidates = [];
     const localDecisions = new Map();
     cards.forEach(card => {
@@ -138,7 +139,7 @@
     let incompleteChecks = 0;
     allCards.forEach(card => {
       const key = card.dataset.cfKey;
-      const textDecision = localDecisions.get(key) || semantic.decisions.get(key) || (semantic.available ? { decision: "allow" } : { decision: "uncertain", source: "offline" });
+      const textDecision = key === "img:only" ? { decision: "allow" } : (localDecisions.get(key) || semantic.decisions.get(key) || (semantic.available ? { decision: "allow" } : { decision: "uncertain", source: "offline" }));
       const outcome = globalThis.CFContentPipeline.processCard({
         card,
         textDecision,

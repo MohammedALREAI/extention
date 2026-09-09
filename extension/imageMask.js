@@ -121,17 +121,24 @@
     }, true);
   }
   function applyBoxes(image, boxes, context) {
+    if (!boxes?.length) {
+      const signature = `boxes:${context?.policyRevision || ""}:[]`;
+      if (sameVisualState(image, signature)) return 0;
+      clearImageLayers(image);
+      setVisualState(image, signature);
+      return 0;
+    }
+    if (!image?.parentElement) return 0;
+    const host = image.parentElement;
     // The measured geometry is part of the signature: a reflow that moves the image
     // inside its host would otherwise leave the patch behind, because an unchanged box
     // list makes this look like work already done.
-    const geometry = layerGeometry(image, image.parentElement);
-    const signature = `boxes:${context?.policyRevision || ""}:${JSON.stringify((boxes || []).map(box => [box.x, box.y, box.width, box.height, box.label]))}:${geometry ? Object.values(geometry).join(",") : "auto"}`;
-    if (sameVisualState(image, signature)) return boxes?.length || 0;
+    const geometry = layerGeometry(image, host);
+    const signature = `boxes:${context?.policyRevision || ""}:${JSON.stringify(boxes.map(box => [box.x, box.y, box.width, box.height, box.label]))}:${geometry ? Object.values(geometry).join(",") : "auto"}`;
+    if (sameVisualState(image, signature)) return boxes.length;
     clearImageLayers(image);
     setVisualState(image, signature);
-    if (!boxes?.length || !image.parentElement) return 0;
     bindMissFeedback(image, context);
-    const host = image.parentElement;
     if (getComputedStyle(host).position === "static") host.style.position = "relative";
     const layer = createLayer(image, host, geometry);
     // Overlapping masks are isolated in CSS (.cf-image-mask-layer) so two feathered

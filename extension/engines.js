@@ -1,6 +1,6 @@
 (function () {
   const REGISTRY = [
-    { id: "google", hosts: [/^(.+\.)?google\./i], cardSelectors: ["div[data-hveid]:has(h3)", "a[href]:has(h3)", "div.MjjYud", "div.g"], imageCardSelectors: ["a[href*='imgurl=']", "div[data-ri]", "div.isv-r"], imageRegions: ["#center_col", "#search", "#rhs", "#rcnt", "div[role='main']", "div[role='complementary']"] },
+    { id: "google", hosts: [/^(.+\.)?google\./i], cardSelectors: ["div[data-hveid]:has(h3)", "a[href]:has(h3)", "div.MjjYud", "div.g"], imageCardSelectors: ["a[href*='imgurl=']", "div[data-ri]", "div.isv-r", "div[data-ved]:has(img)", "div[role='listitem']:has(img)", "g-img"], imageRegions: ["#center_col", "#search", "#rhs", "#rcnt", "div[role='main']", "div[role='complementary']"] },
     { id: "bing", hosts: [/^www\.bing\.com$/i], cardSelectors: ["li.b_algo"] },
     { id: "duckduckgo", hosts: [/^(html\.)?duckduckgo\.com$/i], cardSelectors: ["article[data-testid='result']", "div.result"] },
     { id: "brave", hosts: [/^search\.brave\.com$/i], cardSelectors: ["div[data-type='web']", "div.snippet"] },

@@ -5,7 +5,9 @@ import { modelRouter } from "./modelRouter";
 // (polygon or RLE). Adding it as optional keeps the API extensible without
 // breaking existing clients that only use bounding boxes.
 export type VisualBox = { x: number; y: number; width: number; height: number; label: string; confidence: number; mask?: unknown };
-export type VisualDetection = { id: string; boxes: VisualBox[]; status?: "unavailable" };
+// `subject` is the open-ended answer to "what is this a picture of", independent of the
+// policy. Optional so the extension, which only ever needs boxes, parses unchanged.
+export type VisualDetection = { id: string; boxes: VisualBox[]; subject?: string; status?: "unavailable" };
 // Tuned for recall: a background or partly hidden instance of a filtered object scores
 // lower and covers less area than a dominant subject, and dropping it is the failure
 // mode that matters here. A box claiming most of the frame keeps the strict floor —
@@ -55,8 +57,20 @@ function hasReasonableAspectRatio(width: number, height: number) {
   return ratio <= 12;
 }
 
+export function cleanJsonText(text: string): string {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  if (fenced) return fenced[1].trim();
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    return trimmed.slice(firstBrace, lastBrace + 1);
+  }
+  return trimmed;
+}
+
 export function parseVisualReply(content: unknown): VisualDetection[] {
-  const raw = JSON.parse(responseText(content)) as { detections?: unknown };
+  const raw = JSON.parse(cleanJsonText(responseText(content))) as { detections?: unknown };
   if (!Array.isArray(raw.detections)) throw new Error("Visual localizer returned no detections.");
   return raw.detections.map(item => {
     const detection = item as Record<string, unknown>;
@@ -80,7 +94,10 @@ export function parseVisualReply(content: unknown): VisualDetection[] {
       return { x, y, width, height, confidence, label };
     }).filter((box): box is VisualBox => box !== null).slice(0, 8) : [];
     if (!id) throw new Error("Visual localizer returned a detection without an id.");
-    return unavailable ? { id, boxes: [], status: "unavailable" } : { id, boxes: deduplicateBoxes(boxes) };
+    const subject = typeof detection.subject === "string" ? detection.subject.trim().slice(0, 80) : "";
+    return unavailable
+      ? { id, boxes: [], status: "unavailable" }
+      : { id, boxes: deduplicateBoxes(boxes), ...(subject ? { subject } : {}) };
   });
 }
 
@@ -130,7 +147,7 @@ export function describeImageForPrompt(image: { id: string; width?: number; heig
   return `${image.id}${size}${context}`;
 }
 
-export async function localizeVisualMatches(input: { sourcePreference: string; rules: FirewallRule[]; images: Array<{ id: string; url: string; width?: number; height?: number; context?: string }> }): Promise<VisualDetection[]> {
+export async function localizeVisualMatches(input: { sourcePreference: string; rules: FirewallRule[]; images: Array<{ id: string; url: string; width?: number; height?: number; context?: string }>; describeSubject?: boolean }): Promise<VisualDetection[]> {
   const prompt = [
     "Locate only objects or visible content that clearly match this content-filter policy.",
     "The policy and the image labels may use any languages or scripts. Use semantic cross-language understanding, but do not infer unrelated content.",
@@ -142,13 +159,20 @@ export async function localizeVisualMatches(input: { sourcePreference: string; r
     "DEPICTIONS COUNT: a clear depiction of a policy-matching object is a match — illustrations, cartoons, drawings, logos, statues, figurines and plush toys included. The reader does not want to see the subject, in any rendering.",
     // Partial objects: concrete example reduces model ambiguity
     "PARTIAL OBJECTS: If a matching object is partially visible — clipped by the image edge, partially occluded by another object, or partly behind something — still return a box covering the VISIBLE portion only. Do not guess the hidden parts. Example: for a cat half-hidden behind a chair, return the visible rectangle covering the visible cat parts only. A partially visible matching object is still a match as long as the visible portion is clearly identifiable.",
-    // Overlapping objects: explicit instruction to keep separate boxes
-    "OVERLAPPING OBJECTS: When matching objects overlap each other or with non-matching objects, return separate tight boxes for each matching instance. Each box should cover only its own matching object, even if boxes partially overlap. Do not merge overlapping matching objects into one large box.",
+    // Overlapping and multiple objects: explicit instruction to keep separate boxes
+    "MULTIPLE AND OVERLAPPING OBJECTS: If the same matching target appears multiple times in the image, return a separate tight box for every individual instance. When matching objects overlap each other or non-matching objects, each box must cover only its own matching object. Never merge multiple distinct instances or individuals into a single large box.",
     // Scale variance: tiny background to dominant foreground
     "SCALE VARIANCE: Objects may appear at very different scales — from tiny background elements to dominant foreground subjects. Apply the same detection criteria regardless of apparent size. A small or background instance is as much a match as the main subject: report it with a tight box rather than skipping it because it is minor, distant, or blurred by depth of field.",
     "Coordinates are normalized to a 1000×1000 image: x/y are top-left, width/height are box size. Return boxes only for clearly matching objects. For example, if a dog and a cat are visible but the policy filters dogs, return every dog box and no cat box. Fit each box tightly to the visible matching object; do not include the entire image, unrelated background, or nearby non-matching objects. If uncertain, return an empty boxes array.",
     `Only return boxes with confidence at least ${MIN_VISUAL_CONFIDENCE_EDGE} for edge-clipped partial objects, ${MIN_VISUAL_CONFIDENCE} for normal objects, and ${MIN_VISUAL_CONFIDENCE_LARGE} for large dominant objects. Weak resemblance is not a match. Return an empty boxes array rather than guessing. Check that each retained box is a single instance of a policy-matching target before returning it.`,
-    "Output JSON only in this exact shape: {\"detections\":[{\"id\":\"image-id\",\"status\":\"ready\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":0,\"height\":0,\"label\":\"matched-object\",\"confidence\":0.0}]}]}. Include one detection entry for every supplied image id. Use status \"unavailable\" and an empty boxes array only when that image itself cannot be inspected; never represent that technical condition as a no-match.",
+    // Asked for in the same call rather than a second round trip. It is descriptive
+    // only: the policy decides boxes, and naming a subject never creates one.
+    ...(input.describeSubject
+      ? ["ALSO DESCRIBE THE SUBJECT: add a \"subject\" field to each detection naming the main subject of that image in one or two lowercase English words (for example \"dog\", \"sports car\", \"mountain landscape\"). Describe what is actually depicted, whatever it is, independently of the policy and of whether anything matched. The subject never justifies a box on its own."]
+      : []),
+    input.describeSubject
+      ? "Output JSON only in this exact shape: {\"detections\":[{\"id\":\"image-id\",\"status\":\"ready\",\"subject\":\"main-subject\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":0,\"height\":0,\"label\":\"matched-object\",\"confidence\":0.0}]}]}. Include one detection entry for every supplied image id. Use status \"unavailable\" and an empty boxes array only when that image itself cannot be inspected; never represent that technical condition as a no-match."
+      : "Output JSON only in this exact shape: {\"detections\":[{\"id\":\"image-id\",\"status\":\"ready\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":0,\"height\":0,\"label\":\"matched-object\",\"confidence\":0.0}]}]}. Include one detection entry for every supplied image id. Use status \"unavailable\" and an empty boxes array only when that image itself cannot be inspected; never represent that technical condition as a no-match.",
     `USER PREFERENCE: ${input.sourcePreference}`,
     `EDITABLE RULES: ${JSON.stringify(input.rules)}`,
     `IMAGE IDS IN MESSAGE ORDER, WITH LOADED DIMENSIONS AND UNTRUSTED NEARBY PAGE TEXT:\n${input.images.map(image => `- ${describeImageForPrompt(image)}`).join("\n")}`,

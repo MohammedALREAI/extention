@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { invokeLLM, listLLMModels } from "../server/_core/llm";
 
 // The sample image is supplied by the environment so no deployment URL is baked in:
