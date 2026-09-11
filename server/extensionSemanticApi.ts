@@ -3,7 +3,7 @@ import type { Express, Request, Response } from "express";
 import { getPolicyByIdForUser, getUserById } from "./db";
 import { ENV } from "./_core/env";
 import { evaluateSemantically } from "./semanticFirewall";
-import { localizeVisualMatches } from "./visualLocalization";
+import { detectImages } from "./visualPipeline";
 import { getSubscriptionSummaryForUser } from "./subscriptionService";
 import type { FirewallRule } from "./firewall";
 
@@ -18,6 +18,11 @@ const INLINE_IMAGE = /^data:image\/(png|jpe?g|webp|gif|avif);base64,[A-Za-z0-9+/
 // visual check. It is bounded and stripped of control characters here; the prompt itself
 // marks it untrusted so it can never act as an instruction.
 export const MAX_IMAGE_CONTEXT_LENGTH = 200;
+/**
+ * How long the visual route may spend before it must answer with whatever it has.
+ * The extension aborts at 20s; this leaves headroom for the response to reach it.
+ */
+export const EXTENSION_VISUAL_BUDGET_MS = 15_000;
 
 // Controls, zero-width characters and bidi overrides: invisible in a review of the
 // stored text, but able to reshape how the prompt reads.
@@ -74,6 +79,21 @@ export function isAllowedExtensionOrigin(origin: string | undefined) {
   return false;
 }
 
+/**
+ * Chrome's Private Network Access check. A page on a public origin — every search engine
+ * this extension runs on — reaching a loopback address is treated as crossing into the
+ * local network, so Chrome sends `Access-Control-Request-Private-Network: true` on the
+ * preflight and drops the real request unless the answer opts in. An ordinary CORS pass
+ * is not enough: the request never leaves the browser, nothing reaches the server, and
+ * the extension reports the same "check unavailable" it shows for a server that is down.
+ *
+ * Only ever answered outside production. In a deployment this header would invite any
+ * public page to reach a server sitting on someone's private network.
+ */
+export function allowsPrivateNetwork(env: NodeJS.ProcessEnv = process.env) {
+  return env.NODE_ENV !== "production";
+}
+
 function allowCors(request: Request, response: Response) {
   const origin = request.header("origin");
   if (!isAllowedExtensionOrigin(origin)) return false;
@@ -83,6 +103,9 @@ function allowCors(request: Request, response: Response) {
   }
   response.setHeader("Access-Control-Allow-Headers", "authorization, content-type");
   response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  if (request.header("access-control-request-private-network") === "true" && allowsPrivateNetwork()) {
+    response.setHeader("Access-Control-Allow-Private-Network", "true");
+  }
   return true;
 }
 
@@ -134,8 +157,28 @@ export function devAuthBypassEnabled(env: NodeJS.ProcessEnv = process.env) {
   return env.NODE_ENV !== "production" && env.CF_DEV_NO_AUTH === "1";
 }
 
-export function devPolicy(env: NodeJS.ProcessEnv = process.env): ResolvedPolicy {
-  const terms = String(env.CF_DEV_RULES || "dog").split(",").map(term => term.trim()).filter(Boolean);
+/** Rule terms the extension states it is enforcing. Dev-mode only — see devPolicy. */
+export function requestRuleTerms(body: unknown): string[] {
+  const source = body && typeof body === "object" ? (body as Record<string, unknown>).rules : undefined;
+  if (!Array.isArray(source)) return [];
+  return Array.from(new Set(source
+    .map(value => String(value ?? "").normalize("NFC").trim().toLocaleLowerCase())
+    .filter(term => term.length >= 2 && term.length <= 40))).slice(0, 20);
+}
+
+/**
+ * The policy used when the auth bypass is on. It prefers the terms the extension sent,
+ * because otherwise the two halves disagree in the most confusing way possible: text
+ * masking follows the user's own rules while image detection hunts whatever
+ * `CF_DEV_RULES` happens to say. `CF_DEV_RULES` remains the fallback for callers that
+ * send no rules at all.
+ *
+ * Dev-only on purpose. With real auth the stored policy is the source of truth and a
+ * client-supplied rule list is ignored.
+ */
+export function devPolicy(env: NodeJS.ProcessEnv = process.env, requested: string[] = []): ResolvedPolicy {
+  const fallback = String(env.CF_DEV_RULES || "dog").split(",").map(term => term.trim()).filter(Boolean);
+  const terms = requested.length ? requested : fallback;
   const rules = (terms.length ? terms : ["dog"]).map(term => ({ term, action: "blur" as const }));
   return { sourcePreference: `Do not show me: ${rules.map(rule => rule.term).join(", ")}`, rulesJson: rules };
 }
@@ -152,7 +195,7 @@ export function registerExtensionSemanticApi(app: Express) {
 
   app.post("/api/extension/semantic-evaluate", async (request: Request, response: Response) => {
     if (!allowCors(request, response)) return response.status(403).json({ error: "Extension origin required." });
-    let policy: ResolvedPolicy | null = devAuthBypassEnabled() ? devPolicy() : null;
+    let policy: ResolvedPolicy | null = devAuthBypassEnabled() ? devPolicy(process.env, requestRuleTerms(request.body)) : null;
     if (!policy) {
       const token = request.header("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
       const claims = verifyExtensionAccessToken(token);
@@ -190,7 +233,7 @@ export function registerExtensionSemanticApi(app: Express) {
 
   app.post("/api/extension/visual-localize", async (request: Request, response: Response) => {
     if (!allowCors(request, response)) return response.status(403).json({ error: "Extension origin required." });
-    let policy: ResolvedPolicy | null = devAuthBypassEnabled() ? devPolicy() : null;
+    let policy: ResolvedPolicy | null = devAuthBypassEnabled() ? devPolicy(process.env, requestRuleTerms(request.body)) : null;
     if (!policy) {
       const token = request.header("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
       const claims = verifyExtensionAccessToken(token);
@@ -208,7 +251,18 @@ export function registerExtensionSemanticApi(app: Express) {
     const images = normalizeVisualRequestImages(submitted);
     if (!images.length) return response.status(400).json({ error: "At least one HTTPS image URL or inline image is required." });
     try {
-      return response.json(await localizeVisualMatches({ sourcePreference: policy.sourcePreference, rules: policy.rulesJson, images }));
+      // Thorough: uncertain results get a second, cropped look before they reach the
+      // page. Easy images still cost a single call. The budget is deliberately under the
+      // extension's own 20s abort (CFRequestControl.VISUAL_TIMEOUT_MS) with room for the
+      // response to travel — an extra pass that lands after the client gave up protects
+      // nothing, so the pipeline skips it rather than starting it.
+      return response.json(await detectImages({
+        sourcePreference: policy.sourcePreference,
+        rules: policy.rulesJson,
+        images,
+        effort: "thorough",
+        deadlineMs: EXTENSION_VISUAL_BUDGET_MS,
+      }));
     } catch (error) {
       console.error("[Extension visual localization]", error);
       return response.status(502).json({ error: "Visual localization was unavailable." });

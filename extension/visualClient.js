@@ -3,7 +3,7 @@
     const cache = new Map();
     const inflight = new Map();
     const unavailable = new Map();
-    async function locate(config, images) {
+    async function locate(config, images, ruleTerms = []) {
       if (!globalThis.CFRequestControl.networkAvailable()) return { state: "unavailable", reason: "offline", detections: new Map(), unavailableKeys: new Set(images.map(image => image.key)) };
       const endpoint = config?.visualEndpoint || config?.endpoint?.replace("/semantic-evaluate", "/visual-localize");
       if (!endpoint || !config?.token || Number(config.expiresAt) <= Date.now()) return { state: "unavailable", reason: "policy_access", detections: new Map(), unavailableKeys: new Set(images.map(image => image.key)) };
@@ -45,7 +45,10 @@
       }
       async function attemptBatch(batch) {
         try {
-          const response = await globalThis.CFRequestControl.fetchWithDeadline(fetchImpl, endpoint, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${config.token}` }, body: JSON.stringify({ images: batch.map(image => ({ id: image.key, url: image.url, ...(image.url ? {} : { dataUrl: image.dataUrl }), ...(image.context ? { context: image.context } : {}), width: image.width, height: image.height })) }) }, globalThis.CFRequestControl.VISUAL_TIMEOUT_MS);
+          const response = await globalThis.CFRequestControl.fetchWithDeadline(fetchImpl, endpoint, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${config.token}` }, // The rule terms travel with the request so a server running without a stored policy
+// checks for what this extension is actually enforcing. A server with a real policy
+// ignores them.
+body: JSON.stringify({ rules: ruleTerms, images: batch.map(image => ({ id: image.key, url: image.url, ...(image.url ? {} : { dataUrl: image.dataUrl }), ...(image.context ? { context: image.context } : {}), width: image.width, height: image.height })) }) }, globalThis.CFRequestControl.VISUAL_TIMEOUT_MS);
           if (!response.ok) return { ok: false, ...failureFor(response.status) };
           const detections = await response.json();
           if (!Array.isArray(detections) || !detections.every(item => item && typeof item === "object" && typeof item.id === "string")) {

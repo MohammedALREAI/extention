@@ -443,7 +443,10 @@ export default function Home() {
               <div className="control-card">
                 <label>{t.actionLabel}</label>
                 <div className="segmented-control" role="group" aria-label={t.actionLabel}>
-                  {(["blur", "block", "warn"] as Action[]).map(option => <button key={option} className={action === option ? `selected ${option}` : ""} onClick={() => setAction(option)}>{t[option]}</button>)}
+                  {/* `action-` prefixed, never the bare word: Tailwind defines `.blur` as
+                      filter: blur(8px), so the selected "Blur" button rendered as an
+                      illegible smear. */}
+                  {(["blur", "block", "warn"] as Action[]).map(option => <button key={option} className={action === option ? `selected action-${option}` : ""} onClick={() => setAction(option)}>{t[option]}</button>)}
                 </div>
               </div>
               <div className="control-card scope-card">
@@ -474,7 +477,10 @@ export default function Home() {
             <div className="test-input-wrap">{testType === "text" ? <Textarea value={testValue} onChange={event => setTestValue(event.target.value)} placeholder={t.testPlaceholder} className="test-input" /> : <Input value={testValue} onChange={event => setTestValue(event.target.value)} placeholder={t.urlPlaceholder} className="url-input" />}</div>
             <Button className="run-check-button" onClick={runTest} disabled={evaluateMutation.isPending || testValue.trim().length < 3}>{evaluateMutation.isPending ? <Loader2 className="spin" size={17} /> : <Radar size={17} />}{evaluateMutation.isPending ? t.running : t.runTest}<ArrowRight size={16} /></Button>
 
-            <div className={`result-card ${result ? visualResult?.tone : "empty"}`}>
+            {/* Same collision as the segmented control, with a worse symptom: a "blur"
+                decision blurred the entire result panel, so the one card explaining the
+                decision became the one card nobody could read. */}
+            <div className={`result-card ${result ? `tone-${visualResult?.tone}` : "empty"}`}>
               <div className="result-card-head"><span>{t.resultsTitle}</span>{result && <span className="cache-pill"><Zap size={12} />{result.cacheStatus === "cached" ? t.cached : t.fresh}</span>}</div>
               {!result ? <div className="empty-result"><ShieldCheck size={28} /><p>{t.resultsEmpty}</p></div> : <>
                 <div className="decision-line"><span className="decision-icon"><ResultIcon size={22} /></span><div><strong>{t[result.decision]}</strong><small>{result.uncertain ? t.uncertainLabel : `${Math.round(result.confidence * 100)}% ${t.confidence.toLowerCase()}`}</small></div></div>

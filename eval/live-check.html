@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Content Firewall — live end-to-end check</title>
+    <style>
+      body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: #fbfbfe; }
+      main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+      .grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+      figure { margin: 0; padding: 12px; border: 1px solid #d8d5ea; border-radius: 10px; background: #fff; }
+      figure img { display: block; width: 100%; height: auto; border-radius: 6px; background: #eceaf6; }
+      figcaption { margin-top: 8px; font-size: 13px; }
+      .expect { display: block; margin-top: 4px; font-size: 12px; color: #6b6690; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Live end-to-end check — block “cat”</h1>
+      <p>
+        Unlike <code>acceptance-page.html</code>, which waits on a reviewed local dataset, this page
+        uses remote images so it exercises the same path a search result does: the extension sends a
+        URL, the server fetches the pixels itself, and only the matched object is covered.
+      </p>
+
+      <div class="grid">
+        <figure>
+          <img id="cat-1" src="https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=520" alt="A kitten" width="520" height="546" />
+          <figcaption>1. Cat<span class="expect">Cat region covered</span></figcaption>
+        </figure>
+        <figure>
+          <img id="cat-2" src="https://images.pexels.com/photos/1276553/pexels-photo-1276553.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=520" alt="A cat lying down" width="520" height="347" />
+          <figcaption>2. Cat, different pose<span class="expect">Cat region covered</span></figcaption>
+        </figure>
+        <figure>
+          <img id="dog-1" src="https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=520" alt="Two puppies" width="520" height="390" />
+          <figcaption>3. Dogs<span class="expect">Untouched — only “cat” is blocked</span></figcaption>
+        </figure>
+        <figure>
+          <!-- The alt text claims a cat; the photo is a car. Nothing may be covered: a caption
+               is a hint for the detector, never a trigger on its own. -->
+          <img id="car-titled-cat" src="https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=520" alt="Cat" title="Cat" width="520" height="293" />
+          <figcaption>4. Cat<span class="expect">Untouched — the picture is a car</span></figcaption>
+        </figure>
+      </div>
+    </main>
+  </body>
+</html>

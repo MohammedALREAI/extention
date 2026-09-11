@@ -1,1 +1,153 @@
-:root{color-scheme:dark;font-family:Inter,system-ui,"Noto Sans Arabic",sans-serif}body{width:276px;margin:0;background:#0b0f18;color:#f7f8ff}main{padding:20px;background:radial-gradient(circle at 100% 0,rgba(130,110,255,.25),transparent 12rem)}.mark{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:#8274fb}.eyebrow{margin:14px 0 5px;color:#bbb4ff;font-size:9px;font-weight:800;letter-spacing:.12em}h1{margin:0;font-size:20px;letter-spacing:-.05em}#summary{min-height:32px;margin:10px 0 17px;color:#aab4c8;font-size:11px;line-height:1.45}.alert{margin:0 0 15px;padding:8px 9px;border:1px solid rgba(248,191,77,.5);border-radius:7px;background:rgba(65,46,18,.55);color:#ffdc8b;font-size:10px;line-height:1.45}.alert[hidden]{display:none}button{width:100%;border:0;border-radius:8px;padding:10px;background:#8174fb;color:#fff;font-weight:800;font-size:11px;cursor:pointer}
+/*
+ * The popup shares the options page's tokens so the two read as one product. It is the
+ * only surface most people see day to day, so it answers the three questions asked of it
+ * — is it on, what is it blocking, did anything fail — without needing the options page.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --brand: #6d5cf7;
+  --brand-strong: #5847e4;
+  --brand-soft: rgba(109, 92, 247, .12);
+  --accent: #17966f;
+  --accent-soft: rgba(23, 150, 111, .12);
+  --warn: #9a6400;
+  --warn-soft: rgba(154, 100, 0, .1);
+
+  --bg: #ffffff;
+  --sunken: #f3f4fa;
+  --line: #e2e4ef;
+  --ink: #171b2b;
+  --muted: #5f6782;
+
+  font-family: Inter, ui-sans-serif, system-ui, "Segoe UI", "Noto Sans Arabic", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand: #8a7dff;
+    --brand-strong: #6d5cf7;
+    --brand-soft: rgba(138, 125, 255, .16);
+    --accent: #4fd6ad;
+    --accent-soft: rgba(79, 214, 173, .14);
+    --warn: #ffdc8b;
+    --warn-soft: rgba(154, 100, 0, .28);
+
+    --bg: #0b0f1a;
+    --sunken: #161d2f;
+    --line: #272f47;
+    --ink: #f4f6ff;
+    --muted: #98a3bf;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  width: 320px;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+main {
+  padding: 18px;
+  background: radial-gradient(circle at 100% 0, var(--brand-soft), transparent 13rem);
+}
+
+/* ---------- header ---------- */
+
+header { display: flex; align-items: center; gap: 10px; }
+
+.mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, var(--brand), var(--brand-strong));
+  color: #fff;
+  font-size: 16px;
+}
+
+.titles { min-width: 0; }
+.eyebrow { margin: 0; color: var(--brand); font-size: 8px; font-weight: 800; letter-spacing: .13em; }
+h1 { margin: 2px 0 0; font-size: 15px; letter-spacing: -.02em; }
+
+.pill {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border-radius: 100px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.pill[data-state="active"] { background: var(--accent-soft); color: var(--accent); }
+.pill[data-state="paused"], .pill[data-state="empty"] { background: var(--warn-soft); color: var(--warn); }
+.pill[data-state="loading"] { background: var(--sunken); color: var(--muted); }
+
+/* ---------- blocks ---------- */
+
+.block { margin-top: 15px; }
+.label { margin: 0 0 7px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .13em; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.chip {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--sunken);
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A term the user chose reads as the product's subject, so it carries the brand. */
+.chip-term { border-color: color-mix(in srgb, var(--brand) 34%, transparent); background: var(--brand-soft); color: var(--brand); }
+.chip-on { border-color: color-mix(in srgb, var(--accent) 32%, transparent); background: var(--accent-soft); color: var(--accent); }
+.chip-off { color: var(--muted); text-decoration: line-through; }
+.chip-empty { color: var(--muted); font-weight: 500; }
+
+/* ---------- text ---------- */
+
+.note { margin: 15px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+
+.alert {
+  margin: 12px 0 0;
+  padding: 8px 9px;
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.alert[hidden] { display: none; }
+
+/* ---------- action ---------- */
+
+button {
+  width: 100%;
+  margin-top: 16px;
+  padding: 11px;
+  border: 0;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  color: #fff;
+  font: 800 11px/1 inherit;
+  cursor: pointer;
+}
+
+button:hover { filter: brightness(1.08); }
+button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }

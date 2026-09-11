@@ -1,2 +1,29 @@
 [Auth] Missing session cookie
 [Auth] Missing session cookie
+[Auth] Missing session cookie
+[Auth] Missing session cookie
+[Auth] Missing session cookie
+[Auth] Missing session cookie
+[Auth] Missing session cookie
+[Extension visual localization] Error: LLM invoke failed: 400 Bad Request – {"error":{"message":"Received 400 status code when fetching image from URL: https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/320px-Cat_November_2010-1a.jpg","code":400,"metadata":{"provider_name":null}}}
+    at Object.invokeLLM (C:\projects\content-firewall\server\_core\llm.ts:439:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.run (C:\projects\content-firewall\server\modelRouter.ts:130:26)
+    at async localizeVisualMatches (C:\projects\content-firewall\server\visualLocalization.ts:180:18)
+    at async detectImages (C:\projects\content-firewall\server\visualPipeline.ts:101:20)
+    at async <anonymous> (C:\projects\content-firewall\server\extensionSemanticApi.ts:241:28)
+[Extension visual localization] Error: LLM invoke failed: 400 Bad Request – {"error":{"message":"Received 400 status code when fetching image from URL: https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/320px-Cat_November_2010-1a.jpg","code":400,"metadata":{"provider_name":null}}}
+    at Object.invokeLLM (C:\projects\content-firewall\server\_core\llm.ts:439:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.run (C:\projects\content-firewall\server\modelRouter.ts:130:26)
+    at async localizeVisualMatches (C:\projects\content-firewall\server\visualLocalization.ts:180:18)
+    at async detectImages (C:\projects\content-firewall\server\visualPipeline.ts:101:20)
+    at async <anonymous> (C:\projects\content-firewall\server\extensionSemanticApi.ts:241:28)
+[Extension visual localization] Error: LLM invoke failed: 400 Bad Request – {"error":{"message":"Received 400 status code when fetching image from URL: https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/320px-Cat_November_2010-1a.jpg","code":400,"metadata":{"provider_name":null}}}
+    at Object.invokeLLM (C:\projects\content-firewall\server\_core\llm.ts:439:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.run (C:\projects\content-firewall\server\modelRouter.ts:130:26)
+    at async localizeVisualMatches (C:\projects\content-firewall\server\visualLocalization.ts:180:18)
+    at async detectImages (C:\projects\content-firewall\server\visualPipeline.ts:116:20)
+    at async <anonymous> (C:\projects\content-firewall\server\extensionSemanticApi.ts:241:28)
+[Auth] Missing session cookie

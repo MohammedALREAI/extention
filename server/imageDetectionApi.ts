@@ -3,7 +3,7 @@ import { findImageUploadByHash, getActiveDeveloperApiKeyByHash, recordDeveloperA
 import { hashDeveloperApiKey, readBearerApiKey } from "./developerKeys";
 import { allowDeveloperRequest } from "./developerModerationApi";
 import { decodeImageDataUrl, readStoredImage, saveImage, toDataUrl, type DecodedUpload } from "./imageStore";
-import { localizeVisualMatches } from "./visualLocalization";
+import { detectImages } from "./visualPipeline";
 
 export const IMAGE_SCOPE = "detect:image";
 export const MAX_CATEGORIES = 20;
@@ -36,11 +36,13 @@ const DECODE_MESSAGES: Record<string, string> = {
 };
 
 export async function detectStoredImage(upload: DecodedUpload, categories: string[]) {
-  const [detection] = await localizeVisualMatches({
+  // No browsing deadline here, so this path always takes the thorough route.
+  const [detection] = await detectImages({
     sourcePreference: `Identify the main subject, and locate any of these categories: ${categories.join(", ")}.`,
     rules: categories.map(term => ({ term, action: "blur" as const })),
     images: [{ id: upload.sha256, url: toDataUrl(upload.bytes, upload.type), width: upload.dimensions?.width, height: upload.dimensions?.height }],
     describeSubject: true,
+    effort: "thorough",
   });
   if (!detection || detection.status === "unavailable") return undefined;
   return {

@@ -1,2 +1,38 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="stylesheet" href="popup.css" /><title>Content Firewall</title></head><body><main><div class="mark">◈</div><p class="eyebrow">CONTENT FIREWALL</p><h1>Search guard is ready.</h1><p id="summary">Loading your policy…</p><p id="visualStatus" class="alert" hidden></p><button id="settings">Open protection rules</button></main><script src="policy.js"></script><script src="popup.js"></script></body></html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>Content Firewall</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="mark" aria-hidden="true">◈</div>
+        <div class="titles">
+          <p class="eyebrow">CONTENT FIREWALL</p>
+          <h1 id="headline">Search guard</h1>
+        </div>
+        <span id="state" class="pill" data-state="loading">…</span>
+      </header>
+
+      <section class="block">
+        <p class="label">Blocking</p>
+        <div id="terms" class="chips"><span class="chip chip-empty">Loading…</span></div>
+      </section>
+
+      <section class="block">
+        <p class="label">Checking</p>
+        <div id="scopes" class="chips"></div>
+      </section>
+
+      <p id="summary" class="note">Loading your policy…</p>
+      <p id="visualStatus" class="alert" hidden></p>
+
+      <button id="settings">Open protection rules</button>
+    </main>
+    <script src="policy.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

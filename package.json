@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
+    "check:server": "tsx scripts/check_server.ts",
     "eval": "node scripts/eval_images.mjs",
     "release:check": "node scripts/release_check.mjs"
   },
@@ -72,6 +73,7 @@
     "react-hook-form": "^7.64.0",
     "react-resizable-panels": "^3.0.6",
     "recharts": "^2.15.2",
+    "sharp": "^0.35.4",
     "sonner": "^2.0.7",
     "streamdown": "^1.4.0",
     "superjson": "^1.13.3",
