@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse
 
 from contentfirewall.api.extension.cors import cors_headers, is_allowed_origin
 from contentfirewall.api.extension.normalize import normalize_images, normalize_results
+from contentfirewall.api.extension.policy import wire_error_for
 from contentfirewall.domain.deadline import Deadline
 from contentfirewall.domain.models import FirewallRule, PipelineImage
 from contentfirewall.domain.ports import ModelCall
@@ -94,8 +95,9 @@ async def visual_localize(request: Request) -> Response:
         return _error("At least one HTTPS image URL or inline image is required.", 400, headers)
 
     policy = await request.app.state.resolve_policy(request, payload)
-    if policy.error is not None:
-        return _error(policy.error.message, policy.error.status, headers)
+    if policy.refusal is not None:
+        wire = wire_error_for(policy.refusal)
+        return _error(wire.message, wire.status, headers)
 
     try:
         detections = await detect_images(
@@ -163,8 +165,9 @@ async def semantic_evaluate(request: Request) -> Response:
         return _error("At least one result text is required.", 400, headers)
 
     policy = await request.app.state.resolve_policy(request, payload)
-    if policy.error is not None:
-        return _error(policy.error.message, policy.error.status, headers)
+    if policy.refusal is not None:
+        wire = wire_error_for(policy.refusal)
+        return _error(wire.message, wire.status, headers)
 
     cards = [ResultCard(id=result.id, text=result.text) for result in results]
     surrogates, original_by_surrogate = bounded_ids(cards)

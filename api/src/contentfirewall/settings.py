@@ -36,6 +36,17 @@ class Settings:
     database_url: str = field(default_factory=lambda: os.getenv("DATABASE_URL", ""))
     redis_url: str = field(default_factory=lambda: os.getenv("REDIS_URL", "redis://localhost:6379/0"))
 
+    # One secret currently signs both session cookies and extension tokens, so rotating
+    # either invalidates the other — including every extension already installed, which
+    # nobody can force-update. These allow the two trust boundaries to separate, defaulting
+    # to the shared secret so tokens issued before the split keep verifying.
+    session_secret: str = field(
+        default_factory=lambda: os.getenv("CF_SESSION_SECRET") or os.getenv("JWT_SECRET", "")
+    )
+    extension_token_secret: str = field(
+        default_factory=lambda: os.getenv("CF_EXTENSION_TOKEN_SECRET") or os.getenv("JWT_SECRET", "")
+    )
+
     environment: str = field(default_factory=lambda: os.getenv("CF_ENV", os.getenv("NODE_ENV", "development")))
 
     @property

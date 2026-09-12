@@ -1,0 +1,20 @@
+{
+  "$comment": "Read by both the TypeScript client and the Python backend. A contract test asserts the two agree — duplicating prices across two runtimes with nothing checking them is how a $10 plan becomes a $1000 one.",
+  "trialLengthDays": 10,
+  "plans": {
+    "monthly": {
+      "code": "monthly",
+      "name": "Monthly Plan",
+      "amountCents": 1000,
+      "currency": "USD",
+      "billingPeriod": "month"
+    },
+    "yearly": {
+      "code": "yearly",
+      "name": "Yearly Plan",
+      "amountCents": 5000,
+      "currency": "USD",
+      "billingPeriod": "year"
+    }
+  }
+}

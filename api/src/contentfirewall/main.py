@@ -25,6 +25,8 @@ from contentfirewall.api.extension.policy import (
     make_unconfigured_resolver,
 )
 from contentfirewall.api.extension.router import router as extension_router
+from contentfirewall.db.session import create_engine, create_session_factory
+from contentfirewall.services.extension_auth import make_database_resolver
 from contentfirewall.settings import Settings
 from contentfirewall.settings import settings as default_settings
 
@@ -36,6 +38,39 @@ SECURITY_HEADERS: Final = {
     "x-frame-options": "DENY",
     "permissions-policy": "camera=(), microphone=(), geolocation=()",
 }
+
+
+def _policy_resolver(app: FastAPI, config: Settings, bypass: bool):
+    """Pick how an extension request proves what it may ask for.
+
+    Three states, and the third is the one worth being careful about:
+
+    * **bypass** — development only, double-gated, synthesises a policy from the request.
+    * **database** — the real ladder: token, access, ownership.
+    * **neither** — refuse everything with 401. Answering without a policy would mean
+      checking against nothing, which looks exactly like protection and is not.
+    """
+    if bypass:
+        # Loud on purpose: this is the one setting that turns authentication off.
+        logger.warning("extension auth bypass is ENABLED (CF_DEV_NO_AUTH=1, non-production)")
+        return make_dev_resolver()
+
+    if config.database_url and config.extension_token_secret:
+        engine = create_engine(config.database_url)
+        app.state.engine = engine
+        app.state.sessions = create_session_factory(engine)
+        return make_database_resolver(app.state.sessions, secret=config.extension_token_secret)
+
+    missing = [
+        name
+        for name, value in (
+            ("DATABASE_URL", config.database_url),
+            ("CF_EXTENSION_TOKEN_SECRET/JWT_SECRET", config.extension_token_secret),
+        )
+        if not value
+    ]
+    logger.error("extension endpoints will refuse every request: %s unset", ", ".join(missing))
+    return make_unconfigured_resolver()
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -66,10 +101,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     bypass = dev_auth_bypass_enabled()
     app.state.allow_private_network = not config.is_production
-    app.state.resolve_policy = make_dev_resolver() if bypass else make_unconfigured_resolver()
-    if bypass:
-        # Loud on purpose: this is the one setting that turns authentication off.
-        logger.warning("extension auth bypass is ENABLED (CF_DEV_NO_AUTH=1, non-production)")
+    app.state.resolve_policy = _policy_resolver(app, config, bypass)
 
     @app.middleware("http")
     async def security_headers(request, call_next):  # type: ignore[no-untyped-def]
