@@ -1,2 +1,1 @@
-﻿"""Persistence: SQLAlchemy models, session/unit-of-work, repositories."""
-
+"""Persistence: SQLAlchemy models, session and unit-of-work, repositories."""

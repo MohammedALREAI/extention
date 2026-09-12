@@ -101,7 +101,11 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S105", "S106", "S311"]   # hardcoded test tokens and non-crypto randomness are fine
+# Hardcoded test tokens, non-crypto randomness, and addresses asserted *as blocked* are
+# all fine in a test.
+"tests/**" = ["S105", "S106", "S311", "S104"]
+# Command-line tools: printing is the output, and stdlib-only argv handling is the point.
+"scripts/**" = ["T201"]
 
 [tool.ruff.format]
 quote-style = "double"
