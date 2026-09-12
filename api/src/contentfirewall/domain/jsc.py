@@ -30,6 +30,7 @@ __all__ = [
     "js_len",
     "js_lower",
     "js_number",
+    "js_round",
     "js_slice",
     "js_string",
     "js_truncate",
@@ -133,6 +134,22 @@ def js_number(value: object, missing: object = _MISSING) -> float:
             return 0.0
         return js_number(value[0]) if len(value) == 1 else NAN
     return NAN
+
+
+def js_round(value: float) -> int:
+    """``Math.round`` — ties go toward +Infinity, not to even.
+
+    Python's ``round()`` is banker's rounding: ``round(0.5)`` is 0 and ``round(2.5)`` is 2,
+    where JavaScript gives 1 and 3. This function decides crop pixel sizes, so a one-pixel
+    disagreement shifts the crop, which shifts the verified box, which moves the blur.
+
+    Written as compare-then-step rather than ``floor(value + 0.5)``, because that shortcut
+    is wrong for the largest double below a half: ``0.49999999999999994 + 0.5`` rounds *up*
+    to exactly 1.0 during the addition, so the shortcut answers 1 where JavaScript answers
+    0. The ECMAScript spec calls this case out by name.
+    """
+    floored = math.floor(value)
+    return floored + 1 if value - floored >= 0.5 else floored
 
 
 def js_string(value: object, default: str = "") -> str:
