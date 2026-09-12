@@ -1,0 +1,171 @@
+[project]
+name = "contentfirewall"
+version = "0.1.0"
+description = "Content Firewall backend — semantic text screening and object-level image detection."
+requires-python = ">=3.12"
+
+# Runtime dependencies are grouped by the layer that needs them, so the pure domain can be
+# installed and tested on its own. Phase 1 needs nothing from `web`, `data` or `imaging`.
+dependencies = []
+
+[project.optional-dependencies]
+web = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "httpx>=0.28",
+  "python-multipart>=0.0.20",
+  "pyjwt>=2.10",
+  "structlog>=24.4",
+  "prometheus-client>=0.21",
+]
+data = [
+  "sqlalchemy[asyncio]>=2.0.36",
+  "asyncpg>=0.30",
+  "alembic>=1.14",
+  "redis>=5.2",
+  "arq>=0.26",
+]
+imaging = [
+  "pyvips[binary]>=2.2.3",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "pytest-cov>=6.0",
+  "hypothesis>=6.122",
+  "ruff>=0.8",
+  "mypy>=1.13",
+  "import-linter>=2.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/contentfirewall"]
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+addopts = "-q --strict-markers --strict-config"
+markers = [
+  "contract: replays a frozen wire contract; must not be weakened without a version bump",
+  "integration: needs a real PostgreSQL and Redis",
+]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+source = ["src/contentfirewall"]
+branch = true
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "\\.\\.\\."]
+
+# ---------------------------------------------------------------------------
+# ruff
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "E", "F", "W",      # pycodestyle + pyflakes
+  "I",                # import sorting
+  "UP",               # pyupgrade
+  "B",                # bugbear
+  "SIM",              # simplify
+  "RUF",              # ruff-specific
+  "ASYNC",            # async correctness
+  "S",                # bandit — security
+  "T20",              # no print()
+  "PTH",              # pathlib over os.path
+]
+ignore = [
+  "S101",   # assert is how pytest works
+  "E501",   # line length is enforced by the formatter, not the linter
+  # This service handles Arabic, Japanese and CJK text as a core feature, and the model
+  # prompts contain characters (U+00D7 MULTIPLICATION SIGN, in "1000×1000") that must
+  # match the TypeScript original exactly. "Ambiguous character" is the normal case here.
+  "RUF001", "RUF002", "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S311"]   # hardcoded test tokens and non-crypto randomness are fine
+
+[tool.ruff.format]
+quote-style = "double"
+
+# ---------------------------------------------------------------------------
+# mypy — strict where it pays, default elsewhere
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+files = ["src", "tests"]
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "src"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = ["contentfirewall.domain.*", "contentfirewall.services.*"]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["pyvips.*", "arq.*"]
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------------------
+# import-linter — the domain's purity is mechanical, not a convention
+# ---------------------------------------------------------------------------
+[tool.importlinter]
+root_package = "contentfirewall"
+# Required so the "domain is pure" contract can name third-party packages, which is most
+# of the point of it — the domain must not reach for fastapi or sqlalchemy.
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "domain is pure"
+type = "forbidden"
+source_modules = ["contentfirewall.domain"]
+forbidden_modules = [
+  "fastapi",
+  "starlette",
+  "sqlalchemy",
+  "httpx",
+  "redis",
+  "pyvips",
+  "arq",
+  "contentfirewall.adapters",
+  "contentfirewall.db",
+  "contentfirewall.api",
+  "contentfirewall.services",
+  "contentfirewall.workers",
+]
+
+[[tool.importlinter.contracts]]
+name = "layers"
+type = "layers"
+# Every layer package exists from the start, empty where the migration has not reached it
+# yet, so the contract enforces direction from day one instead of being switched on at the
+# end — which is when it would have been needed least.
+layers = [
+  "contentfirewall.api",
+  "contentfirewall.services",
+  "contentfirewall.adapters | contentfirewall.db",
+  "contentfirewall.domain",
+]
+exhaustive = false

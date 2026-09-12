@@ -1,0 +1,991 @@
+{
+  "node": "v22.21.1",
+  "cases": [
+    {
+      "value": "",
+      "length": 0,
+      "codePoints": 0,
+      "lower": "",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "hello world",
+      "length": 11,
+      "codePoints": 11,
+      "lower": "hello world",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "h",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "he",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "hel",
+          "length": 3,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "hell",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "hello",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "hello wo",
+          "length": 8,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "hello world",
+          "length": 11,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "hello world",
+          "length": 11,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "hello world",
+          "length": 11,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "كلب وقطة",
+      "length": 8,
+      "codePoints": 8,
+      "lower": "كلب وقطة",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "ك",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "كل",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "كلب",
+          "length": 3,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "كلب ",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "كلب و",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "كلب وقطة",
+          "length": 8,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "كلب وقطة",
+          "length": 8,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "كلب وقطة",
+          "length": 8,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "كلب وقطة",
+          "length": 8,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "ギャンブル",
+      "length": 5,
+      "codePoints": 5,
+      "lower": "ギャンブル",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "ギ",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "ギャ",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "ギャン",
+          "length": 3,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "ギャンブ",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "ギャンブル",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "ギャンブル",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "ギャンブル",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "ギャンブル",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "ギャンブル",
+          "length": 5,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "café",
+      "length": 4,
+      "codePoints": 4,
+      "lower": "café",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "c",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "ca",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "caf",
+          "length": 3,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "café",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "café",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "café",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "café",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "café",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "café",
+          "length": 4,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "caféor",
+      "length": 6,
+      "codePoints": 6,
+      "lower": "caféor",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "c",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "ca",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "caf",
+          "length": 3,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "café",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "caféo",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "caféor",
+          "length": 6,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "caféor",
+          "length": 6,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "caféor",
+          "length": 6,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "caféor",
+          "length": 6,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "STRASSE",
+      "length": 7,
+      "codePoints": 7,
+      "lower": "strasse",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "S",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "ST",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "STR",
+          "length": 3,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "STRA",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "STRAS",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "STRASSE",
+          "length": 7,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "STRASSE",
+          "length": 7,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "STRASSE",
+          "length": 7,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "STRASSE",
+          "length": 7,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "ß",
+      "length": 1,
+      "codePoints": 1,
+      "lower": "ß",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "ß",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "ß",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "ß",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "ß",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "ß",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "ß",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "ß",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "ß",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "ß",
+          "length": 1,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "ﬁ",
+      "length": 1,
+      "codePoints": 1,
+      "lower": "ﬁ",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "ﬁ",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "ﬁ",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "ﬁ",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "ﬁ",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "ﬁ",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "ﬁ",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "ﬁ",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "ﬁ",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "ﬁ",
+          "length": 1,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "😀",
+      "length": 2,
+      "codePoints": 1,
+      "lower": "😀",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": null,
+          "length": 1,
+          "loneSurrogate": true
+        },
+        "2": {
+          "text": "😀",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "😀",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "😀",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "😀",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "😀",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "😀",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "😀",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "😀",
+          "length": 2,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "ab😀cd",
+      "length": 6,
+      "codePoints": 5,
+      "lower": "ab😀cd",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "a",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "ab",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": null,
+          "length": 3,
+          "loneSurrogate": true
+        },
+        "4": {
+          "text": "ab😀",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "ab😀c",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "ab😀cd",
+          "length": 6,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "ab😀cd",
+          "length": 6,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "ab😀cd",
+          "length": 6,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "ab😀cd",
+          "length": 6,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "a😀b😀c",
+      "length": 7,
+      "codePoints": 5,
+      "lower": "a😀b😀c",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "a",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": null,
+          "length": 2,
+          "loneSurrogate": true
+        },
+        "3": {
+          "text": "a😀",
+          "length": 3,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "a😀b",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": null,
+          "length": 5,
+          "loneSurrogate": true
+        },
+        "8": {
+          "text": "a😀b😀c",
+          "length": 7,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "a😀b😀c",
+          "length": 7,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "a😀b😀c",
+          "length": 7,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "a😀b😀c",
+          "length": 7,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "👨‍👩‍👧",
+      "length": 8,
+      "codePoints": 5,
+      "lower": "👨‍👩‍👧",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": null,
+          "length": 1,
+          "loneSurrogate": true
+        },
+        "2": {
+          "text": "👨",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "👨‍",
+          "length": 3,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": null,
+          "length": 4,
+          "loneSurrogate": true
+        },
+        "5": {
+          "text": "👨‍👩",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "👨‍👩‍👧",
+          "length": 8,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "👨‍👩‍👧",
+          "length": 8,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "👨‍👩‍👧",
+          "length": 8,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "👨‍👩‍👧",
+          "length": 8,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "length": 120,
+      "codePoints": 60,
+      "lower": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": null,
+          "length": 1,
+          "loneSurrogate": true
+        },
+        "2": {
+          "text": "😀",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": null,
+          "length": 3,
+          "loneSurrogate": true
+        },
+        "4": {
+          "text": "😀😀",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": null,
+          "length": 5,
+          "loneSurrogate": true
+        },
+        "8": {
+          "text": "😀😀😀😀",
+          "length": 8,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "length": 80,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "length": 120,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "length": 120,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "length": 122,
+      "codePoints": 61,
+      "lower": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": null,
+          "length": 1,
+          "loneSurrogate": true
+        },
+        "2": {
+          "text": "😀",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": null,
+          "length": 3,
+          "loneSurrogate": true
+        },
+        "4": {
+          "text": "😀😀",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": null,
+          "length": 5,
+          "loneSurrogate": true
+        },
+        "8": {
+          "text": "😀😀😀😀",
+          "length": 8,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "length": 80,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "length": 120,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "length": 122,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "𠀀𠀁",
+      "length": 4,
+      "codePoints": 2,
+      "lower": "𠀀𠀁",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": null,
+          "length": 1,
+          "loneSurrogate": true
+        },
+        "2": {
+          "text": "𠀀",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": null,
+          "length": 3,
+          "loneSurrogate": true
+        },
+        "4": {
+          "text": "𠀀𠀁",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "𠀀𠀁",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "𠀀𠀁",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "𠀀𠀁",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "𠀀𠀁",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "𠀀𠀁",
+          "length": 4,
+          "loneSurrogate": false
+        }
+      }
+    },
+    {
+      "value": "mixed كلب 😀 text",
+      "length": 17,
+      "codePoints": 16,
+      "lower": "mixed كلب 😀 text",
+      "slices": {
+        "0": {
+          "text": "",
+          "length": 0,
+          "loneSurrogate": false
+        },
+        "1": {
+          "text": "m",
+          "length": 1,
+          "loneSurrogate": false
+        },
+        "2": {
+          "text": "mi",
+          "length": 2,
+          "loneSurrogate": false
+        },
+        "3": {
+          "text": "mix",
+          "length": 3,
+          "loneSurrogate": false
+        },
+        "4": {
+          "text": "mixe",
+          "length": 4,
+          "loneSurrogate": false
+        },
+        "5": {
+          "text": "mixed",
+          "length": 5,
+          "loneSurrogate": false
+        },
+        "8": {
+          "text": "mixed كل",
+          "length": 8,
+          "loneSurrogate": false
+        },
+        "80": {
+          "text": "mixed كلب 😀 text",
+          "length": 17,
+          "loneSurrogate": false
+        },
+        "120": {
+          "text": "mixed كلب 😀 text",
+          "length": 17,
+          "loneSurrogate": false
+        },
+        "200": {
+          "text": "mixed كلب 😀 text",
+          "length": 17,
+          "loneSurrogate": false
+        }
+      }
+    }
+  ]
+}

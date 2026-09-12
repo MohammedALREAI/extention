@@ -1,0 +1,2874 @@
+{
+  "cases": [
+    {
+      "name": "plain match [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "plain match [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "plain match [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "empty boxes [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "empty boxes [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "empty boxes [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "missing boxes key [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\"}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "missing boxes key [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\"}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "missing boxes key [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\"}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "unavailable [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"status\":\"unavailable\",\"boxes\":[]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "status": "unavailable"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "unavailable [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"status\":\"unavailable\",\"boxes\":[]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "status": "unavailable"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "unavailable [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"status\":\"unavailable\",\"boxes\":[]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "status": "unavailable"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "unavailable with boxes [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"status\":\"unavailable\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "status": "unavailable"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "unavailable with boxes [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"status\":\"unavailable\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "status": "unavailable"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "unavailable with boxes [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"status\":\"unavailable\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "status": "unavailable"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "subject present [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"subject\":\"  a dog  \",\"boxes\":[]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "subject": "a dog"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "subject present [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"subject\":\"  a dog  \",\"boxes\":[]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "subject": "a dog"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "subject present [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"subject\":\"  a dog  \",\"boxes\":[]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "subject": "a dog"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "subject overlong [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"subject\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"boxes\":[]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "subject": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "subject overlong [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"subject\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"boxes\":[]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "subject": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "subject overlong [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"subject\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"boxes\":[]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [],
+          "subject": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "label overlong [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "label overlong [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "label overlong [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "label missing [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "matched object"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "label missing [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "matched object"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "label missing [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "matched object"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "label null [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":null,\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "matched object"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "label null [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":null,\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "matched object"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "label null [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":null,\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "matched object"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "arabic label [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"قطط\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "قطط"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "arabic label [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"قطط\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "قطط"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "arabic label [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"قطط\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "قطط"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "id with whitespace [raw]",
+      "input": "{\"detections\":[{\"id\":\"  a  \",\"boxes\":[]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "id with whitespace [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"  a  \",\"boxes\":[]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "id with whitespace [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"  a  \",\"boxes\":[]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "string numbers [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":\"100\",\"y\":100,\"width\":\"300\",\"height\":300,\"label\":\"dog\",\"confidence\":\"0.9\"}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "string numbers [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":\"100\",\"y\":100,\"width\":\"300\",\"height\":300,\"label\":\"dog\",\"confidence\":\"0.9\"}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "string numbers [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":\"100\",\"y\":100,\"width\":\"300\",\"height\":300,\"label\":\"dog\",\"confidence\":\"0.9\"}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "null coordinate [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":null,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "null coordinate [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":null,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "null coordinate [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":null,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "missing coordinate [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"y\":100,\"width\":300,\"height\":300,\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "missing coordinate [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"y\":100,\"width\":300,\"height\":300,\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "missing coordinate [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"y\":100,\"width\":300,\"height\":300,\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "bool confidence [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":true}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 1,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "bool confidence [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":true}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 1,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "bool confidence [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":true}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 1,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "array coordinate [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":[50],\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 50,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "array coordinate [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":[50],\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 50,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "array coordinate [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":[50],\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 50,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "object coordinate [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":{},\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "object coordinate [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":{},\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "object coordinate [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":{},\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "whole frame weak [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":1000,\"height\":1000,\"label\":\"dog\",\"confidence\":0.7}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "whole frame weak [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":1000,\"height\":1000,\"label\":\"dog\",\"confidence\":0.7}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "whole frame weak [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":1000,\"height\":1000,\"label\":\"dog\",\"confidence\":0.7}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "whole frame strong [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":1000,\"height\":1000,\"label\":\"dog\",\"confidence\":0.8}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 1000,
+              "height": 1000,
+              "confidence": 0.8,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "whole frame strong [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":1000,\"height\":1000,\"label\":\"dog\",\"confidence\":0.8}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 1000,
+              "height": 1000,
+              "confidence": 0.8,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "whole frame strong [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":1000,\"height\":1000,\"label\":\"dog\",\"confidence\":0.8}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 1000,
+              "height": 1000,
+              "confidence": 0.8,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "edge sliver [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":500,\"width\":30,\"height\":35,\"label\":\"dog\",\"confidence\":0.7}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 500,
+              "width": 30,
+              "height": 35,
+              "confidence": 0.7,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "edge sliver [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":500,\"width\":30,\"height\":35,\"label\":\"dog\",\"confidence\":0.7}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 500,
+              "width": 30,
+              "height": 35,
+              "confidence": 0.7,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "edge sliver [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":500,\"width\":30,\"height\":35,\"label\":\"dog\",\"confidence\":0.7}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 500,
+              "width": 30,
+              "height": 35,
+              "confidence": 0.7,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "mid sliver [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":400,\"y\":500,\"width\":30,\"height\":35,\"label\":\"dog\",\"confidence\":0.99}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "mid sliver [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":400,\"y\":500,\"width\":30,\"height\":35,\"label\":\"dog\",\"confidence\":0.99}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "mid sliver [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":400,\"y\":500,\"width\":30,\"height\":35,\"label\":\"dog\",\"confidence\":0.99}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "elongated [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":600,\"height\":40,\"label\":\"dog\",\"confidence\":0.95}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "elongated [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":600,\"height\":40,\"label\":\"dog\",\"confidence\":0.95}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "elongated [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":600,\"height\":40,\"label\":\"dog\",\"confidence\":0.95}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "aspect exactly 12 [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":480,\"height\":40,\"label\":\"dog\",\"confidence\":0.95}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 480,
+              "height": 40,
+              "confidence": 0.95,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "aspect exactly 12 [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":480,\"height\":40,\"label\":\"dog\",\"confidence\":0.95}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 480,
+              "height": 40,
+              "confidence": 0.95,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "aspect exactly 12 [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":480,\"height\":40,\"label\":\"dog\",\"confidence\":0.95}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 480,
+              "height": 40,
+              "confidence": 0.95,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "overflow right [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":900,\"y\":100,\"width\":200,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "overflow right [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":900,\"y\":100,\"width\":200,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "overflow right [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":900,\"y\":100,\"width\":200,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "exactly at right edge [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":700,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 700,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "exactly at right edge [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":700,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 700,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "exactly at right edge [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":700,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 700,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "negative [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":-1,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "negative [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":-1,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "negative [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":-1,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "zero width [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":0,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "zero width [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":0,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "zero width [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":0,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "nine boxes [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d0\",\"confidence\":0.9},{\"x\":100,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d1\",\"confidence\":0.9},{\"x\":200,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d2\",\"confidence\":0.9},{\"x\":300,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d3\",\"confidence\":0.9},{\"x\":400,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d4\",\"confidence\":0.9},{\"x\":500,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d5\",\"confidence\":0.9},{\"x\":600,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d6\",\"confidence\":0.9},{\"x\":700,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d7\",\"confidence\":0.9},{\"x\":800,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d8\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d0"
+            },
+            {
+              "x": 100,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d1"
+            },
+            {
+              "x": 200,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d2"
+            },
+            {
+              "x": 300,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d3"
+            },
+            {
+              "x": 400,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d4"
+            },
+            {
+              "x": 500,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d5"
+            },
+            {
+              "x": 600,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d6"
+            },
+            {
+              "x": 700,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d7"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "nine boxes [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d0\",\"confidence\":0.9},{\"x\":100,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d1\",\"confidence\":0.9},{\"x\":200,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d2\",\"confidence\":0.9},{\"x\":300,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d3\",\"confidence\":0.9},{\"x\":400,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d4\",\"confidence\":0.9},{\"x\":500,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d5\",\"confidence\":0.9},{\"x\":600,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d6\",\"confidence\":0.9},{\"x\":700,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d7\",\"confidence\":0.9},{\"x\":800,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d8\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d0"
+            },
+            {
+              "x": 100,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d1"
+            },
+            {
+              "x": 200,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d2"
+            },
+            {
+              "x": 300,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d3"
+            },
+            {
+              "x": 400,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d4"
+            },
+            {
+              "x": 500,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d5"
+            },
+            {
+              "x": 600,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d6"
+            },
+            {
+              "x": 700,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d7"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "nine boxes [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d0\",\"confidence\":0.9},{\"x\":100,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d1\",\"confidence\":0.9},{\"x\":200,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d2\",\"confidence\":0.9},{\"x\":300,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d3\",\"confidence\":0.9},{\"x\":400,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d4\",\"confidence\":0.9},{\"x\":500,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d5\",\"confidence\":0.9},{\"x\":600,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d6\",\"confidence\":0.9},{\"x\":700,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d7\",\"confidence\":0.9},{\"x\":800,\"y\":0,\"width\":90,\"height\":300,\"label\":\"d8\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d0"
+            },
+            {
+              "x": 100,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d1"
+            },
+            {
+              "x": 200,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d2"
+            },
+            {
+              "x": 300,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d3"
+            },
+            {
+              "x": 400,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d4"
+            },
+            {
+              "x": 500,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d5"
+            },
+            {
+              "x": 600,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d6"
+            },
+            {
+              "x": 700,
+              "y": 0,
+              "width": 90,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "d7"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "duplicate overlap [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":80,\"y\":100,\"width\":220,\"height\":310,\"label\":\"cat\",\"confidence\":0.96},{\"x\":88,\"y\":108,\"width\":215,\"height\":300,\"label\":\"cat\",\"confidence\":0.84}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 80,
+              "y": 100,
+              "width": 220,
+              "height": 310,
+              "confidence": 0.96,
+              "label": "cat"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "duplicate overlap [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":80,\"y\":100,\"width\":220,\"height\":310,\"label\":\"cat\",\"confidence\":0.96},{\"x\":88,\"y\":108,\"width\":215,\"height\":300,\"label\":\"cat\",\"confidence\":0.84}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 80,
+              "y": 100,
+              "width": 220,
+              "height": 310,
+              "confidence": 0.96,
+              "label": "cat"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "duplicate overlap [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":80,\"y\":100,\"width\":220,\"height\":310,\"label\":\"cat\",\"confidence\":0.96},{\"x\":88,\"y\":108,\"width\":215,\"height\":300,\"label\":\"cat\",\"confidence\":0.84}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 80,
+              "y": 100,
+              "width": 220,
+              "height": 310,
+              "confidence": 0.96,
+              "label": "cat"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "same label containment [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":400,\"height\":400,\"label\":\"dog\",\"confidence\":0.95},{\"x\":150,\"y\":150,\"width\":200,\"height\":200,\"label\":\"dog\",\"confidence\":0.8}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 400,
+              "height": 400,
+              "confidence": 0.95,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "same label containment [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":400,\"height\":400,\"label\":\"dog\",\"confidence\":0.95},{\"x\":150,\"y\":150,\"width\":200,\"height\":200,\"label\":\"dog\",\"confidence\":0.8}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 400,
+              "height": 400,
+              "confidence": 0.95,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "same label containment [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":400,\"height\":400,\"label\":\"dog\",\"confidence\":0.95},{\"x\":150,\"y\":150,\"width\":200,\"height\":200,\"label\":\"dog\",\"confidence\":0.8}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 400,
+              "height": 400,
+              "confidence": 0.95,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "different label containment [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":400,\"height\":400,\"label\":\"dog\",\"confidence\":0.95},{\"x\":150,\"y\":150,\"width\":200,\"height\":200,\"label\":\"cat\",\"confidence\":0.8}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 400,
+              "height": 400,
+              "confidence": 0.95,
+              "label": "dog"
+            },
+            {
+              "x": 150,
+              "y": 150,
+              "width": 200,
+              "height": 200,
+              "confidence": 0.8,
+              "label": "cat"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "different label containment [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":400,\"height\":400,\"label\":\"dog\",\"confidence\":0.95},{\"x\":150,\"y\":150,\"width\":200,\"height\":200,\"label\":\"cat\",\"confidence\":0.8}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 400,
+              "height": 400,
+              "confidence": 0.95,
+              "label": "dog"
+            },
+            {
+              "x": 150,
+              "y": 150,
+              "width": 200,
+              "height": 200,
+              "confidence": 0.8,
+              "label": "cat"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "different label containment [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":400,\"height\":400,\"label\":\"dog\",\"confidence\":0.95},{\"x\":150,\"y\":150,\"width\":200,\"height\":200,\"label\":\"cat\",\"confidence\":0.8}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 400,
+              "height": 400,
+              "confidence": 0.95,
+              "label": "dog"
+            },
+            {
+              "x": 150,
+              "y": 150,
+              "width": 200,
+              "height": 200,
+              "confidence": 0.8,
+              "label": "cat"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "equal confidence ordering [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":100,\"width\":300,\"height\":300,\"label\":\"p\",\"confidence\":0.9},{\"x\":600,\"y\":100,\"width\":300,\"height\":300,\"label\":\"q\",\"confidence\":0.9}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "p"
+            },
+            {
+              "x": 600,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "q"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "equal confidence ordering [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":100,\"width\":300,\"height\":300,\"label\":\"p\",\"confidence\":0.9},{\"x\":600,\"y\":100,\"width\":300,\"height\":300,\"label\":\"q\",\"confidence\":0.9}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "p"
+            },
+            {
+              "x": 600,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "q"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "equal confidence ordering [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":0,\"y\":100,\"width\":300,\"height\":300,\"label\":\"p\",\"confidence\":0.9},{\"x\":600,\"y\":100,\"width\":300,\"height\":300,\"label\":\"q\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "p"
+            },
+            {
+              "x": 600,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "q"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "multiple detections [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]},{\"id\":\"b\",\"boxes\":[]},{\"id\":\"c\",\"status\":\"unavailable\",\"boxes\":[]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "boxes": []
+        },
+        {
+          "id": "c",
+          "boxes": [],
+          "status": "unavailable"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "multiple detections [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]},{\"id\":\"b\",\"boxes\":[]},{\"id\":\"c\",\"status\":\"unavailable\",\"boxes\":[]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "boxes": []
+        },
+        {
+          "id": "c",
+          "boxes": [],
+          "status": "unavailable"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "multiple detections [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]},{\"id\":\"b\",\"boxes\":[]},{\"id\":\"c\",\"status\":\"unavailable\",\"boxes\":[]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "boxes": []
+        },
+        {
+          "id": "c",
+          "boxes": [],
+          "status": "unavailable"
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "mask passthrough [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9,\"mask\":{\"rle\":[1,2,3]}}]}]}",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "mask passthrough [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9,\"mask\":{\"rle\":[1,2,3]}}]}]}\n```",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "mask passthrough [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9,\"mask\":{\"rle\":[1,2,3]}}]}]}\nHope that helps!",
+      "output": [
+        {
+          "id": "a",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 300,
+              "height": 300,
+              "confidence": 0.9,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "non-object box [raw]",
+      "input": "{\"detections\":[{\"id\":\"a\",\"boxes\":[\"nope\",5,null,{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}",
+      "output": null,
+      "error": "Cannot read properties of null (reading 'x')"
+    },
+    {
+      "name": "non-object box [fenced]",
+      "input": "```json\n{\"detections\":[{\"id\":\"a\",\"boxes\":[\"nope\",5,null,{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\n```",
+      "output": null,
+      "error": "Cannot read properties of null (reading 'x')"
+    },
+    {
+      "name": "non-object box [prose]",
+      "input": "Here you go:\n{\"detections\":[{\"id\":\"a\",\"boxes\":[\"nope\",5,null,{\"x\":100,\"y\":100,\"width\":300,\"height\":300,\"label\":\"dog\",\"confidence\":0.9}]}]}\nHope that helps!",
+      "output": null,
+      "error": "Cannot read properties of null (reading 'x')"
+    },
+    {
+      "name": "sweep c=0.4 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.4}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.4 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.4}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.4 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.4}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.4 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.4}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.4 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.4}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.54 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.54}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.54 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.54}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.54 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.54}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.54 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.54}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.54 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.54}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.55 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.55}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.55 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.55}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.55,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.55 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.55}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.55 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.55}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.55 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.55}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 30,
+              "height": 30,
+              "confidence": 0.55,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.56 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.56}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.56 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.56}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.56,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.56 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.56}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.56 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.56}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.56 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.56}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 30,
+              "height": 30,
+              "confidence": 0.56,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.61 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.61}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.61 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.61}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.61,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.61 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.61}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.61 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.61}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.61 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.61}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 30,
+              "height": 30,
+              "confidence": 0.61,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.62 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.62}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 400,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.62,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.62 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.62}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.62,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.62 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.62}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.62 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.62}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 700,
+              "y": 120,
+              "width": 40,
+              "height": 45,
+              "confidence": 0.62,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.62 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.62}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 30,
+              "height": 30,
+              "confidence": 0.62,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.63 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.63}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 400,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.63,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.63 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.63}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.63,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.63 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.63}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.63 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.63}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 700,
+              "y": 120,
+              "width": 40,
+              "height": 45,
+              "confidence": 0.63,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.63 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.63}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 30,
+              "height": 30,
+              "confidence": 0.63,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.74 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.74}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 400,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.74,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.74 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.74}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.74,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.74 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.74}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": []
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.74 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.74}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 700,
+              "y": 120,
+              "width": 40,
+              "height": 45,
+              "confidence": 0.74,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.74 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.74}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 30,
+              "height": 30,
+              "confidence": 0.74,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.75 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.75}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 400,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.75,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.75 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.75}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.75,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.75 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.75}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 700,
+              "height": 600,
+              "confidence": 0.75,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.75 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.75}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 700,
+              "y": 120,
+              "width": 40,
+              "height": 45,
+              "confidence": 0.75,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.75 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.75}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 30,
+              "height": 30,
+              "confidence": 0.75,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.76 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.76}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 400,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.76,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.76 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.76}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.76,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.76 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.76}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 700,
+              "height": 600,
+              "confidence": 0.76,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.76 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.76}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 700,
+              "y": 120,
+              "width": 40,
+              "height": 45,
+              "confidence": 0.76,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.76 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.76}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 30,
+              "height": 30,
+              "confidence": 0.76,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.99 400,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":400,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.99}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 400,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.99,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.99 0,400,100x100 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":400,\"width\":100,\"height\":100,\"label\":\"dog\",\"confidence\":0.99}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 400,
+              "width": 100,
+              "height": 100,
+              "confidence": 0.99,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.99 100,100,700x600 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":100,\"y\":100,\"width\":700,\"height\":600,\"label\":\"dog\",\"confidence\":0.99}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 100,
+              "y": 100,
+              "width": 700,
+              "height": 600,
+              "confidence": 0.99,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.99 700,120,40x45 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":700,\"y\":120,\"width\":40,\"height\":45,\"label\":\"dog\",\"confidence\":0.99}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 700,
+              "y": 120,
+              "width": 40,
+              "height": 45,
+              "confidence": 0.99,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "sweep c=0.99 0,0,30x30 [raw]",
+      "input": "{\"detections\":[{\"id\":\"s\",\"boxes\":[{\"x\":0,\"y\":0,\"width\":30,\"height\":30,\"label\":\"dog\",\"confidence\":0.99}]}]}",
+      "output": [
+        {
+          "id": "s",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "width": 30,
+              "height": 30,
+              "confidence": 0.99,
+              "label": "dog"
+            }
+          ]
+        }
+      ],
+      "error": null
+    }
+  ]
+}
