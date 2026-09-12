@@ -1,13 +1,15 @@
 """Run the Python detection pipeline against a real image and print what it found.
 
-    python api/scripts/demo_detect.py --term cat
-    python api/scripts/demo_detect.py --term dog --url https://... --effort fast
+Use the project virtualenv, which is where the dependencies live:
+
+    api\\.venv\\Scripts\\python.exe api/scripts/demo_detect.py --term cat     (Windows)
+    api/.venv/bin/python api/scripts/demo_detect.py --term dog --url https://...
 
 This is the end-to-end proof that the ported domain works against a live model, not just
 against recorded fixtures: real gateway, real image fetch, real libvips, real boxes.
 
-It also reports the model call count, because the cost argument is the whole design — an
-easy image should cost one call and an uncertain one two.
+It reports the pass count, because the cost argument is the whole design — an easy image
+should cost one model call and an uncertain one two.
 """
 
 from __future__ import annotations
@@ -21,7 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from contentfirewall.adapters.imaging.fetch import GuardedImageFetcher
-from contentfirewall.adapters.imaging.vips import VipsImageOps
+from contentfirewall.adapters.imaging.vips import ImagingUnavailableError, VipsImageOps
 from contentfirewall.adapters.model.gateway import HttpModelGateway
 from contentfirewall.domain.deadline import Deadline
 from contentfirewall.domain.models import FirewallRule, PipelineImage, PolicyAction
@@ -62,40 +64,52 @@ async def main() -> int:
         print(f"FAILED: {error}")
         return 1
 
+    try:
+        ops = VipsImageOps()
+    except ImagingUnavailableError as error:
+        # Refusing here rather than limping on: without imaging the run still produces
+        # boxes, by handing the model a URL instead of pixels — which is the degraded path
+        # this whole adapter exists to avoid, and it would look like success.
+        print(f"\nFAILED: {error}\n")
+        return 1
+
     gateway = HttpModelGateway(base_url=settings.gateway_url, api_key=settings.gateway_key)
     counting = CountingGateway(gateway)
     fetcher = GuardedImageFetcher()
-    ops = VipsImageOps()
 
-    print(f"\ngateway   {settings.gateway_url}")
+    # One finally for every exit path: a leaked ProcessPoolExecutor keeps the interpreter
+    # alive on Windows, so an early return would hang the command rather than end it.
     try:
-        resolved = await gateway.models_for("visual")
-        print(f"visual    {', '.join(resolved) or 'NO MATCH'}")
-    except Exception as error:
-        print(f"FAILED to read the model catalog: {error}")
-        return 1
+        print(f"\npython    {sys.executable}")
+        print(f"gateway   {settings.gateway_url}")
+        try:
+            resolved = await gateway.models_for("visual")
+            print(f"visual    {', '.join(resolved) or 'NO MATCH'}")
+        except Exception as error:
+            print(f"FAILED to read the model catalog: {error}")
+            return 1
 
-    print(f"blocking  {args.term}")
-    print(f"image     {args.url[:88]}")
-    print(f"effort    {args.effort}\n")
+        print(f"blocking  {args.term}")
+        print(f"image     {args.url[:88]}")
+        print(f"effort    {args.effort}\n")
 
-    started = time.monotonic()
-    try:
-        detections = await detect_images(
-            PipelineRequest(
-                source_preference=f"Do not show me: {args.term}",
-                rules=[FirewallRule(term=args.term, action=PolicyAction.BLUR)],
-                images=[PipelineImage(id="demo", url=args.url)],
-                effort=args.effort,
-            ),
-            model=counting,
-            fetcher=fetcher,
-            ops=ops,
-            deadline=Deadline.after(EXTENSION_BUDGET_S),
-        )
-    except Exception as error:
-        print(f"FAILED: {type(error).__name__}: {error}")
-        return 1
+        started = time.monotonic()
+        try:
+            detections = await detect_images(
+                PipelineRequest(
+                    source_preference=f"Do not show me: {args.term}",
+                    rules=[FirewallRule(term=args.term, action=PolicyAction.BLUR)],
+                    images=[PipelineImage(id="demo", url=args.url)],
+                    effort=args.effort,
+                ),
+                model=counting,
+                fetcher=fetcher,
+                ops=ops,
+                deadline=Deadline.after(EXTENSION_BUDGET_S),
+            )
+        except Exception as error:
+            print(f"FAILED: {type(error).__name__}: {error}")
+            return 1
     finally:
         await gateway.aclose()
         await fetcher.aclose()

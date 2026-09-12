@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import sys
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from typing import Any, Final
@@ -28,6 +29,29 @@ from contentfirewall.domain.ports import ImageInfo
 logger: Final = logging.getLogger(__name__)
 
 JPEG_QUALITY: Final = 82
+
+
+class ImagingUnavailableError(RuntimeError):
+    """libvips could not be loaded, so pixel work is impossible.
+
+    Raised at construction rather than per image, and deliberately fatal. Without imaging
+    the pipeline still *runs* — it hands the model a URL instead of the pixels — which
+    looks like success and is not: a host that refuses the provider's fetch then produces
+    an empty result indistinguishable from "nothing matched", leaving the image uncovered.
+    A degradation nobody can see is worse than a startup failure everybody can.
+    """
+
+
+def probe_imaging() -> None:
+    """Confirm libvips is importable. Cheap, and done once before any work is accepted."""
+    try:
+        import pyvips  # noqa: F401
+    except Exception as error:  # ImportError, or a missing native library
+        raise ImagingUnavailableError(
+            f"libvips is not available to {sys.executable}: {error}. "
+            "Install it with `pip install 'pyvips[binary]'` into the interpreter you are "
+            "running, or use the project virtualenv at api/.venv."
+        ) from error
 
 
 def _init_worker() -> None:
@@ -97,6 +121,10 @@ class VipsImageOps:
     """Satisfies the domain's ``ImageOps`` protocol."""
 
     def __init__(self, max_workers: int | None = None) -> None:
+        # Probed here, in the parent, before a single pool worker exists. Discovering this
+        # inside a subprocess turns one configuration mistake into a traceback per image
+        # and a result that looks fine.
+        probe_imaging()
         workers = max_workers or min(4, os.cpu_count() or 1)
         self._pool = ProcessPoolExecutor(max_workers=workers, initializer=_init_worker)
 
