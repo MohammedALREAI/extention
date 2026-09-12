@@ -165,10 +165,13 @@ async def _localize(
             prompt=prompt,
             images=[ModelImage(url=image.url) for image in images],
             max_tokens=LOCALIZE_MAX_TOKENS,
+            # Parsed inside the ladder, so a model that answers with unusable content is
+            # treated as a failed model and the next one is tried.
+            parse=parse_visual_reply,
         ),
         timeout=deadline.remaining(),
     )
-    return parse_visual_reply(answer.content)
+    return answer.value if answer.value is not None else parse_visual_reply(answer.content)
 
 
 async def build_verify_candidates(
@@ -226,6 +229,7 @@ async def _verify(
     deadline: Deadline,
 ):
     """One batched call for every crop — never one call per box."""
+    crop_ids = [candidate.crop_id for candidate in candidates]
     answer = await model.invoke(
         ModelCall(
             route=VISUAL_ROUTE,
@@ -235,10 +239,11 @@ async def _verify(
                 for c in candidates
             ],
             max_tokens=VERIFY_MAX_TOKENS,
+            parse=lambda content: parse_verify_reply(content, crop_ids),
         ),
         timeout=deadline.remaining(),
     )
-    return parse_verify_reply(answer.content, [candidate.crop_id for candidate in candidates])
+    return answer.value if answer.value is not None else parse_verify_reply(answer.content, crop_ids)
 
 
 async def detect_images(

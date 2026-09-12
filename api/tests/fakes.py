@@ -44,7 +44,11 @@ class FakeModelGateway:
         if isinstance(reply, Exception):
             raise reply
         content = reply if isinstance(reply, str) else json.dumps(reply)
-        return ModelAnswer(content=content, model="fake/model", attempts=1)
+        # The real gateway parses inside its retry ladder, so a parse failure surfaces as a
+        # failed call rather than as a successful one carrying unusable content. The fake
+        # must do the same or tests would pass against behaviour production does not have.
+        value = call.parse(content) if call.parse is not None else None
+        return ModelAnswer(content=content, model="fake/model", attempts=1, value=value)
 
     @property
     def call_count(self) -> int:

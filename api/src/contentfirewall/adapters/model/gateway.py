@@ -29,6 +29,7 @@ from typing import Any, Final
 
 import httpx
 
+from contentfirewall.domain.errors import DomainError
 from contentfirewall.domain.ports import ModelAnswer, ModelCall
 
 CATALOG_TTL_S: Final = 5 * 60
@@ -184,17 +185,35 @@ class HttpModelGateway:
         return ordered_models(await self.catalog(), self._prefixes_for(route))
 
     def _payload(self, call: ModelCall, model: str) -> dict[str, Any]:
-        content: list[dict[str, Any]] = [{"type": "text", "text": call.prompt}]
-        content.extend(
-            {"type": "image_url", "image_url": {"url": image.url, "detail": image.detail}}
-            for image in call.images
-        )
+        # A text-only message goes as a plain string, not a one-element parts array. Both
+        # are valid OpenAI-compatible shapes, but providers do not treat them alike — one
+        # returned empty content for the array form, which surfaced as an unparseable
+        # reply rather than as anything naming the real cause.
+        content: str | list[dict[str, Any]]
+        if call.images:
+            content = [{"type": "text", "text": call.prompt}]
+            content.extend(
+                {"type": "image_url", "image_url": {"url": image.url, "detail": image.detail}}
+                for image in call.images
+            )
+        else:
+            content = call.prompt
+
+        messages: list[dict[str, Any]] = []
+        if call.system_prompt:
+            messages.append({"role": "system", "content": call.system_prompt})
+        messages.append({"role": "user", "content": content})
+
         payload: dict[str, Any] = {
             "model": model,
             "max_tokens": call.max_tokens,
-            "messages": [{"role": "user", "content": content}],
+            "messages": messages,
         }
-        if call.json_object:
+        if call.response_schema is not None:
+            # A strict schema is enforced upstream, so a malformed answer never reaches the
+            # parser — cheaper and more reliable than catching it afterwards.
+            payload["response_format"] = {"type": "json_schema", "json_schema": dict(call.response_schema)}
+        elif call.json_object:
             payload["response_format"] = {"type": "json_object"}
         return payload
 
@@ -231,13 +250,17 @@ class HttpModelGateway:
                 response.raise_for_status()
                 body = response.json()
                 content = body["choices"][0]["message"]["content"]
-            except (httpx.HTTPError, KeyError, IndexError, ValueError) as error:
+                # Inside the try on purpose: a model that returns empty or malformed
+                # content has failed, and the ladder must move to the next one rather than
+                # hand the caller something it cannot use.
+                value = call.parse(content) if call.parse is not None else None
+            except (httpx.HTTPError, KeyError, IndexError, ValueError, DomainError) as error:
                 last_error = error
                 self._breaker.record_failure(model)
                 continue
 
             self._breaker.record_success(model)
-            return ModelAnswer(content=content, model=model, attempts=attempt)
+            return ModelAnswer(content=content, model=model, attempts=attempt, value=value)
 
         raise GatewayError(f'Route "{call.route}" failed after {len(eligible)} attempt(s): {last_error}')
 

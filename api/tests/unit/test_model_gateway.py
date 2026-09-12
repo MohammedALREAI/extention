@@ -21,6 +21,7 @@ from contentfirewall.adapters.model.gateway import (
     ordered_models,
     route_prefixes,
 )
+from contentfirewall.domain.errors import DomainError
 from contentfirewall.domain.ports import ModelCall
 
 CATALOG = [
@@ -201,6 +202,49 @@ class TestCircuitBreaker:
         breaker.record_success("m")
         breaker.record_failure("m")
         assert breaker.is_open("m") is False
+
+    async def test_an_unusable_answer_moves_the_ladder_to_the_next_model(self) -> None:
+        # The bug this pins, found by running the server against a live provider: parsing
+        # happened *after* the ladder, so a model returning empty content counted as a
+        # success and the next model was never tried. One provider quirk became a failed
+        # request, where the ladder exists precisely to absorb it.
+        attempted: list[str] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.path.endswith("/models"):
+                return catalog_response()
+            model = requested_model(request)
+            attempted.append(model)
+            # First model answers with nothing at all, as a real one did.
+            return completion("" if model == "google/gemini-3.8-flash" else '{"ok":true}')
+
+        def parse(content: object) -> dict:
+            import json as _json
+
+            if not content:
+                raise DomainError("empty content")
+            return _json.loads(str(content))
+
+        client = gateway(handler, prefixes_for=lambda route: ["gemini-3.8", "gpt-4o"])
+        answer = await client.invoke(ModelCall(route="visual", prompt="p", parse=parse))
+
+        assert answer.value == {"ok": True}
+        assert answer.model == "openai/gpt-4o-2024-11-20"
+        assert answer.attempts == 2
+        assert len(attempted) == 2
+
+    async def test_a_ladder_where_every_answer_is_unusable_fails(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            return catalog_response() if request.url.path.endswith("/models") else completion("")
+
+        def parse(content: object) -> object:
+            if not content:
+                raise DomainError("empty content")
+            return content
+
+        client = gateway(handler, prefixes_for=lambda route: ["gemini-3.8", "gpt-4o"])
+        with pytest.raises(GatewayError, match="failed after"):
+            await client.invoke(ModelCall(route="visual", prompt="p", parse=parse))
 
     async def test_an_unparseable_answer_counts_against_the_model(self) -> None:
         # A model that reliably returns garbage is as broken as one that times out, and the

@@ -11,8 +11,8 @@ sixty flaky ones.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol, runtime_checkable
 
 from contentfirewall.domain.geometry import PixelRect
@@ -39,6 +39,17 @@ class ModelCall:
     images: Sequence[ModelImage] = ()
     max_tokens: int = 1_000
     json_object: bool = True
+    # A strict JSON schema, when the answer's shape matters enough to have the gateway
+    # enforce it rather than discovering the problem while parsing. The semantic route uses
+    # one; the visual route cannot, because its box arrays vary too much to pin usefully.
+    response_schema: Mapping[str, Any] | None = None
+    system_prompt: str | None = None
+    # Parsing belongs *inside* the route ladder, not after it. A model that answers with
+    # empty or malformed content is as broken as one that times out; if the parse happens
+    # afterwards the ladder counts that answer a success and never tries the next model,
+    # turning a recoverable provider quirk into a failed request.
+    # Excluded from equality so a call stays comparable in tests.
+    parse: Callable[[Any], Any] | None = field(default=None, compare=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,6 +57,9 @@ class ModelAnswer:
     content: Any
     model: str
     attempts: int
+    # What ``ModelCall.parse`` produced, when one was supplied. Callers that pass a parser
+    # read this rather than re-parsing content the ladder already validated.
+    value: Any = None
 
 
 @runtime_checkable
