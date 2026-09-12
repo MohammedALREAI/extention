@@ -1,9 +1,10 @@
 """Run the Python detection pipeline against a real image and print what it found.
 
-Use the project virtualenv, which is where the dependencies live:
+    python api/scripts/demo_detect.py --term cat
+    python api/scripts/demo_detect.py --term dog --url https://... --effort fast
 
-    api\\.venv\\Scripts\\python.exe api/scripts/demo_detect.py --term cat     (Windows)
-    api/.venv/bin/python api/scripts/demo_detect.py --term dog --url https://...
+Any Python will do — the script re-runs itself under the project virtualenv when it needs
+to, so there is no path to remember and nothing to install globally.
 
 This is the end-to-end proof that the ported domain works against a live model, not just
 against recorded fixtures: real gateway, real image fetch, real libvips, real boxes.
@@ -16,11 +17,38 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
+import subprocess
 import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+API_ROOT = Path(__file__).resolve().parents[1]
+VENV_PYTHON = API_ROOT / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
+
+def _rerun_in_project_venv() -> None:
+    """Restart under ``api/.venv`` unless we are already there.
+
+    The dependencies live in the project virtualenv, and typing its full path is the kind
+    of friction that makes a verification step get skipped. Runs before any third-party
+    import, because the first of those is what would otherwise fail.
+
+    Deliberately does nothing when the virtualenv is absent: the ordinary import error then
+    explains the real problem, rather than this hiding it behind a failed re-exec.
+    """
+    if not VENV_PYTHON.exists():
+        return
+    if Path(sys.executable).resolve() == VENV_PYTHON.resolve():
+        return
+    print(f"note: re-running under {VENV_PYTHON}")
+    completed = subprocess.run([str(VENV_PYTHON), str(Path(__file__).resolve()), *sys.argv[1:]], check=False)  # noqa: S603
+    raise SystemExit(completed.returncode)
+
+
+_rerun_in_project_venv()
+
+sys.path.insert(0, str(API_ROOT / "src"))
 
 from contentfirewall.adapters.imaging.fetch import GuardedImageFetcher
 from contentfirewall.adapters.imaging.vips import ImagingUnavailableError, VipsImageOps

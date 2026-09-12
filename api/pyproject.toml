@@ -104,8 +104,10 @@ ignore = [
 # Hardcoded test tokens, non-crypto randomness, and addresses asserted *as blocked* are
 # all fine in a test.
 "tests/**" = ["S105", "S106", "S311", "S104"]
-# Command-line tools: printing is the output, and stdlib-only argv handling is the point.
-"scripts/**" = ["T201"]
+# Command-line tools: printing is the output. E402 is unavoidable here — these scripts
+# re-run themselves under the project virtualenv, and that bootstrap has to happen before
+# the first third-party import, which is precisely the one that would fail without it.
+"scripts/**" = ["T201", "E402"]
 
 [tool.ruff.format]
 quote-style = "double"
