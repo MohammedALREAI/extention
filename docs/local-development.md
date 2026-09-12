@@ -25,6 +25,32 @@ thing you must supply is model credentials. It is double-gated — it is ignored
 4. Open a search page. Without valid credentials every check fails and the popup
    reports it.
 
+## Running the Python API during the migration
+
+The `api/` package implements the same frozen extension wire contract as the Node API.
+To point a development snapshot at Python instead, start the ASGI app with the same
+development flags and choose its base URL when generating the snapshot:
+
+```bash
+cd api
+python -m pip install -e '.[web,dev]'
+CF_DEV_NO_AUTH=1 CF_DEV_RULES=dog \
+  BUILT_IN_FORGE_API_URL="$BUILT_IN_FORGE_API_URL" \
+  BUILT_IN_FORGE_API_KEY="$BUILT_IN_FORGE_API_KEY" \
+  python -m uvicorn contentfirewall.main:app --app-dir src --host 127.0.0.1 --port 8000
+```
+
+In a second terminal, generate an importable snapshot for Python:
+
+```bash
+CF_EXTENSION_API_BASE=http://127.0.0.1:8000/api/extension \
+  npx tsx scripts/dev_snapshot.ts dog
+```
+
+The extension sends the same `POST /semantic-evaluate` and
+`POST /visual-localize` requests to either implementation. Do not use the bypass in
+production; configure `DATABASE_URL` and `CF_EXTENSION_TOKEN_SECRET` instead.
+
 ### Choosing a provider
 
 Any OpenAI-compatible gateway works. Model **names** are provider-specific, so a switch

@@ -10,7 +10,7 @@
 import { toExtensionPolicySnapshot } from "../shared/extensionSnapshot";
 
 const PORT = process.env.PORT || "3001";
-const BASE = `http://localhost:${PORT}/api/extension`;
+const BASE = process.env.CF_EXTENSION_API_BASE || `http://localhost:${PORT}/api/extension`;
 const terms = process.argv.slice(2).filter(Boolean);
 const rules = (terms.length ? terms : String(process.env.CF_DEV_RULES || "dog").split(",").map(term => term.trim()).filter(Boolean))
   .map(term => ({ term, action: "blur" as const }));
@@ -33,6 +33,6 @@ snapshot.semantic = {
 };
 
 console.log(`\nBlocking: ${rules.map(rule => rule.term).join(", ")}`);
-console.log("The server must run with CF_DEV_NO_AUTH=1 and the same terms in CF_DEV_RULES.");
+console.log("The selected API must run with CF_DEV_NO_AUTH=1 and the same terms in CF_DEV_RULES.");
 console.log("\nPaste into the extension → Protection rules → Import policy snapshot:\n");
 console.log(JSON.stringify(snapshot, null, 2));
