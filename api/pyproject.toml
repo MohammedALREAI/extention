@@ -56,6 +56,11 @@ packages = ["src/contentfirewall"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+# One event loop for the whole session. The default is a fresh loop per test, and an
+# asyncpg connection pool created on one loop cannot be used from another — which surfaces
+# as "another operation is in progress" rather than as anything mentioning loops.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 addopts = "-q --strict-markers --strict-config"
 markers = [
   "contract: replays a frozen wire contract; must not be weakened without a version bump",

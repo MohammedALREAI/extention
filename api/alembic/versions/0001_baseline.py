@@ -77,7 +77,7 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.CheckConstraint("secret_hash ~ '^[a-f0-9]{64}$'", name=op.f('ck_developer_api_keys_secret_hash_is_sha256')),
-    sa.CheckConstraint('array_length(scopes, 1) >= 1', name=op.f('ck_developer_api_keys_scopes_not_empty')),
+    sa.CheckConstraint('cardinality(scopes) >= 1', name=op.f('ck_developer_api_keys_scopes_not_empty')),
     sa.CheckConstraint('rate_limit_per_minute between 1 and 10000', name=op.f('ck_developer_api_keys_rate_limit_range')),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_developer_api_keys_user_id_users'), ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_developer_api_keys')),

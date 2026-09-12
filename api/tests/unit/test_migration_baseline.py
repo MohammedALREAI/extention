@@ -131,7 +131,7 @@ class TestConstraints:
             "sha256 ~ '^[a-f0-9]{64}$'",
             "secret_hash ~ '^[a-f0-9]{64}$'",
             "http_status between 100 and 599",
-            "array_length(scopes, 1) >= 1",
+            "cardinality(scopes) >= 1",
         ],
     )
     def test_the_invariants_the_application_only_assumed(self, baseline_sql: str, fragment: str) -> None:

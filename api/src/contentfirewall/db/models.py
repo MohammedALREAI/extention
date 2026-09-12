@@ -201,7 +201,10 @@ class DeveloperApiKey(Base):
         Index("ix_developer_api_keys_user_created", "user_id", "created_at"),
         Index("ix_developer_api_keys_scopes", "scopes", postgresql_using="gin"),
         CheckConstraint("rate_limit_per_minute between 1 and 10000", name="rate_limit_range"),
-        CheckConstraint("array_length(scopes, 1) >= 1", name="scopes_not_empty"),
+        # cardinality(), not array_length(): array_length of an empty array is NULL, and a
+        # CHECK only rejects on FALSE — so the obvious spelling accepted exactly the rows
+        # it was written to stop. cardinality returns 0.
+        CheckConstraint("cardinality(scopes) >= 1", name="scopes_not_empty"),
         CheckConstraint("secret_hash ~ '^[a-f0-9]{64}$'", name="secret_hash_is_sha256"),
     )
 

@@ -9,11 +9,17 @@ from __future__ import annotations
 
 import os
 from logging.config import fileConfig
+from pathlib import Path
 
 from alembic import context
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from contentfirewall.db.models import Base
+
+# The same .env the application and the Node server read, so `alembic upgrade head` needs
+# no separate configuration and cannot drift from what the app connects to.
+load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=False)
 
 config = context.config
 if config.config_file_name is not None:
@@ -26,11 +32,13 @@ def database_url() -> str:
     url = os.getenv("DATABASE_URL", "")
     if not url:
         raise RuntimeError("DATABASE_URL is not set; migrations have nothing to connect to.")
-    # The application uses the asyncpg driver; Alembic uses the sync one. Same database,
-    # different DBAPI, so the scheme is rewritten rather than duplicated in configuration.
-    return url.replace("postgresql+asyncpg://", "postgresql://").replace(
-        "postgres://", "postgresql://"
-    )
+    # The application uses asyncpg; migrations use psycopg's sync driver. Same database,
+    # different DBAPI, so the scheme is rewritten here rather than configured twice — two
+    # URLs for one database is how they end up pointing at different ones.
+    for prefix in ("postgresql+asyncpg://", "postgresql://", "postgres://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix) :]
+    return url
 
 
 def include_object(obj, name, type_, reflected, compare_to) -> bool:  # type: ignore[no-untyped-def]
