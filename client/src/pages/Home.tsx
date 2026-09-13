@@ -40,6 +40,14 @@ type UiLanguage = "en" | "ar";
 type Action = "blur" | "block" | "warn";
 type Rule = { term: string; action: Action };
 type InputType = "text" | "image";
+type Preset = { id: string; icon: typeof ShieldCheck; en: string; ar: string; preferenceEn: string; preferenceAr: string; rules: string[] };
+
+const presets: Preset[] = [
+  { id: "violence", icon: ShieldCheck, en: "Graphic violence", ar: "العنف المصور", preferenceEn: "I don't want to see graphic violence", preferenceAr: "لا أريد مشاهدة عنف مصور", rules: ["graphic violence", "عنف مصور"] },
+  { id: "gambling", icon: LockKeyhole, en: "Gambling", ar: "القمار", preferenceEn: "I don't want to see gambling or casino offers", preferenceAr: "لا أريد مشاهدة القمار أو عروض الكازينو", rules: ["gambling", "casino", "قمار"] },
+  { id: "custom", icon: WandSparkles, en: "Custom rules", ar: "قواعد مخصصة", preferenceEn: "I don't want to see content about", preferenceAr: "لا أريد مشاهدة محتوى عن", rules: [] },
+];
+
 type CheckView = {
   decision: "allow" | Action | "uncertain";
   confidence: number;
@@ -127,6 +135,7 @@ const copy = {
     parserNote: "The MVP parser handles clear Arabic and English topics. Review every rule before saving.",
     reset: "New policy",
     validation: "Add at least one rule before testing or saving.",
+    demoTitle: "Try it before you connect anything", demoText: "See exactly how a protected phrase works. Nothing is sent or saved in this demo.", demoBefore: "A result about gambling offers and casino bonuses", demoProtected: "gambling offers", presetsTitle: "Start with a template", presetsText: "Choose a common setup, then edit every rule before saving.", progressTitle: "Your setup", progressSteps: ["Choose a template", "Review your rules", "Test protection"],
     downloadExtension: "Download Chrome extension v1.0.9",
   },
   ar: {
@@ -206,6 +215,7 @@ const copy = {
     parserNote: "يدعم محلل النسخة الأولى الموضوعات العربية والإنجليزية الواضحة. راجع كل قاعدة قبل حفظها.",
     reset: "سياسة جديدة",
     validation: "أضف قاعدة واحدة على الأقل قبل الاختبار أو الحفظ.",
+    demoTitle: "جرّب الحماية قبل ربط أي شيء", demoText: "شاهد بالضبط كيف تعمل حماية العبارة. لا يتم إرسال أو حفظ أي شيء في هذه التجربة.", demoBefore: "نتيجة عن عروض القمار ومكافآت الكازينو", demoProtected: "عروض القمار", presetsTitle: "ابدأ بقالب جاهز", presetsText: "اختر إعداداً شائعاً ثم راجع كل قاعدة قبل الحفظ.", progressTitle: "خطوات الإعداد", progressSteps: ["اختر قالباً", "راجع القواعد", "اختبر الحماية"],
     downloadExtension: "تنزيل إضافة Chrome الإصدار 1.0.9",
   },
 } as const;
@@ -235,6 +245,7 @@ export default function Home() {
   const [result, setResult] = useState<CheckView | null>(null);
   const [activePolicyId, setActivePolicyId] = useState<number | undefined>();
   const [notice, setNotice] = useState<string | null>(null);
+  const [demoRevealed, setDemoRevealed] = useState(false);
   const t = copy[uiLanguage];
   const utils = trpc.useUtils();
 
@@ -368,6 +379,15 @@ export default function Home() {
     setNotice(null);
   }
 
+  function applyPreset(preset: Preset) {
+    setActivePolicyId(undefined);
+    setPreference(uiLanguage === "ar" ? preset.preferenceAr : preset.preferenceEn);
+    setPolicyName(uiLanguage === "ar" ? `${preset.ar} — سياستي` : `${preset.en} — My policy`);
+    setRules(preset.rules.map(term => ({ term, action: "blur" })));
+    setAction("blur"); setScope({ text: true, images: true }); setResult(null); setNotice(null);
+    document.getElementById("setup")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   if (loading) {
     return <div className="loading-screen"><Radar className="spin" /><span>{t.loading}</span></div>;
   }
@@ -426,6 +446,11 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="quick-start" aria-label={t.demoTitle}>
+          <div className="quick-start-copy"><span className="section-kicker">{uiLanguage === "ar" ? "تجربة سريعة" : "QUICK DEMO"}</span><h2>{t.demoTitle}</h2><p>{t.demoText}</p></div>
+          <div className="demo-result"><span className="demo-label"><Eye size={14} />{uiLanguage === "ar" ? "معاينة نتيجة بحث" : "Search result preview"}</span><p>{t.demoBefore.split(t.demoProtected)[0]}<button className={`demo-mask ${demoRevealed ? "revealed" : ""}`} onClick={() => setDemoRevealed(value => !value)}>{demoRevealed ? t.demoProtected : "••••••••••••"}</button>{t.demoBefore.split(t.demoProtected)[1]}</p><small>{demoRevealed ? (uiLanguage === "ar" ? "انقر لإخفاء العبارة" : "Click again to hide it") : (uiLanguage === "ar" ? "انقر للكشف" : "Click to reveal")}</small></div>
+        </section>
+
         <section className="workspace-grid">
           <div className="setup-panel" id="setup">
             <div className="section-heading">
@@ -433,6 +458,8 @@ export default function Home() {
               <h2>{t.setupTitle}</h2>
               <p>{t.setupText}</p>
             </div>
+            <div className="setup-progress"><span>{t.progressTitle}</span>{t.progressSteps.map((step, index) => <button key={step} className={index === 0 && !rules.length ? "current" : index === 1 && rules.length ? "current" : index === 2 && result ? "complete" : ""} onClick={() => index === 0 ? document.getElementById("presets")?.scrollIntoView({ behavior: "smooth" }) : index === 1 ? document.getElementById("setup")?.scrollIntoView({ behavior: "smooth" }) : document.getElementById("test")?.scrollIntoView({ behavior: "smooth" })}><b>{index + 1}</b>{step}{((index === 0 && rules.length) || (index === 1 && result)) && <CheckCircle2 size={14} />}</button>)}</div>
+            <div className="preset-picker" id="presets"><div><h3>{t.presetsTitle}</h3><p>{t.presetsText}</p></div><div className="preset-grid">{presets.map(preset => { const Icon = preset.icon; return <button key={preset.id} onClick={() => applyPreset(preset)}><Icon size={17} /><span>{uiLanguage === "ar" ? preset.ar : preset.en}</span><ChevronRight size={14} /></button>; })}</div></div>
             <div className="form-field">
               <div className="label-row"><label htmlFor="preference">{t.preferenceLabel}</label><span>{uiLanguage === "ar" ? "العربية والإنجليزية مدعومتان" : "Arabic & English supported"}</span></div>
               <Textarea id="preference" value={preference} onChange={event => setPreference(event.target.value)} placeholder={t.preferenceHint} className="preference-input" />
