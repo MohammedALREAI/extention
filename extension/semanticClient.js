@@ -3,7 +3,7 @@
     const cache = new Map();
     const inflight = new Map();
 
-    async function evaluate(config, candidates) {
+    async function evaluate(config, candidates, ruleTerms = []) {
       if (!globalThis.CFRequestControl.networkAvailable()) return { available: false, reason: "offline", decisions: new Map() };
       if (!config?.endpoint || !config?.token || Number(config.expiresAt) <= Date.now()) {
         return { available: false, decisions: new Map() };
@@ -19,7 +19,10 @@
           inflight.set(requestKey, globalThis.CFRequestControl.fetchWithDeadline(fetchImpl, config.endpoint, {
             method: "POST",
             headers: { "content-type": "application/json", authorization: `Bearer ${config.token}` },
-            body: JSON.stringify({ results: missing.map(candidate => ({ id: candidate.key, text: candidate.text })) }),
+            body: JSON.stringify({
+              rules: ruleTerms,
+              results: missing.map(candidate => ({ id: candidate.key, text: candidate.text })),
+            }),
           }, globalThis.CFRequestControl.SEMANTIC_TIMEOUT_MS).then(async response => {
             if (!response.ok) throw new Error(`Semantic endpoint returned ${response.status}.`);
             const payload = await response.json();

@@ -5,8 +5,8 @@
     return [...new Set(terms.map(term => String(term || "").trim()).filter(Boolean))];
   }
 
-  async function applySemanticProtection({ candidates, evaluator, config, protectCard, documentRef }) {
-    const semantic = await evaluator.evaluate(config, candidates);
+  async function applySemanticProtection({ candidates, evaluator, config, ruleTerms = [], protectCard, documentRef }) {
+    const semantic = await evaluator.evaluate(config, candidates, ruleTerms);
     candidates.forEach(candidate => {
       const decision = semantic.decisions.get(candidate.key) || (semantic.available
         ? { decision: "allow", reason: "No semantic match." }

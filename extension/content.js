@@ -130,7 +130,7 @@
       performance.record("visualBailouts", imageCards.length);
     }
     const work = await globalThis.CFWorkScheduler.runIndependent({
-      semanticTask: () => globalThis.CFContentFlow.applySemanticProtection({ candidates: remoteSemanticCandidates, evaluator: semanticEvaluator, config: activePolicy.semantic, documentRef: document }),
+      semanticTask: () => globalThis.CFContentFlow.applySemanticProtection({ candidates: remoteSemanticCandidates, evaluator: semanticEvaluator, config: activePolicy.semantic, ruleTerms: activePolicy.rules.map(rule => rule.term), documentRef: document }),
       visualTask: () => visualTargets.length ? globalThis.CFImageDecisionPipeline.precoverAndLocalize({ mode: activePolicy.imageProtectionMode, images: visualTargets, imageMask: globalThis.CFImageMask, localize: () => visualLocalizer.locate(activePolicy.semantic, analyzableImages, activePolicy.rules.map(rule => rule.term)) }) : Promise.resolve(null),
     });
     const semantic = work.semantic || { decisions: new Map(), available: false };

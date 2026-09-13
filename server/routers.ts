@@ -9,6 +9,7 @@ import { createExtensionAccessToken } from "./extensionSemanticApi";
 import { getPolicyByIdForUser } from "./db";
 import { getSubscriptionSummaryForUser } from "./subscriptionService";
 import { createDeveloperApiSecret } from "./developerKeys";
+import { ENV } from "./_core/env";
 
 const actionSchema = z.enum(["blur", "block", "warn"]);
 const scopeSchema = z.object({ text: z.boolean(), images: z.boolean() });
@@ -111,7 +112,8 @@ export const appRouter = router({
         const proto = ctx.req.header("x-forwarded-proto")?.split(",")[0] || ctx.req.protocol || "https";
         if (!host) throw new Error("Unable to determine semantic endpoint.");
         const base = `${proto}://${host}/api/extension`;
-        return { endpoint: `${base}/semantic-evaluate`, visualEndpoint: `${base}/visual-localize`, ...access };
+        const extensionBase = ENV.pythonApiUrl ? `${ENV.pythonApiUrl}/api/extension` : base;
+        return { endpoint: `${extensionBase}/semantic-evaluate`, visualEndpoint: `${extensionBase}/visual-localize`, ...access };
       }),
     }),
     history: paidProcedure.input(z.object({ limit: z.number().int().min(1).max(20).default(8) }).optional()).query(({ ctx, input }) => listCheckHistoryForUser(ctx.user.id, input?.limit ?? 8)),
